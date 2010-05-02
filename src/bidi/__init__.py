@@ -305,77 +305,7 @@ def debug_string (in_string, uper_is_rtl = False):
 	# print embed level
 	print 'Paragraph level: ' + paragraph_level (in_string, uper_is_rtl) + eor_level (in_string, uper_is_rtl)
 
-def do_tests ():
-	''' do tests from http://imagic.weizmann.ac.il/~dov/freesw/FriBidi/
-	car is THE CAR in arabic            => car is RAC EHT in arabic           
-	CAR IS the car IN ENGLISH           =>           HSILGNE NI the car SI RAC
-	he said "IT IS 123, 456, OK"        => he said "KO ,456 ,123 SI TI"       
-	he said "IT IS (123, 456), OK"      => he said "KO ,(456 ,123) SI TI"     
-	he said "IT IS 123,456, OK"         => he said "KO ,123,456 SI TI"        
-	he said "IT IS (123,456), OK"       => he said "KO ,(123,456) SI TI"      
-	HE SAID "it is 123, 456, ok"        =>        "it is 123, 456, ok" DIAS EH
-	<H123>shalom</H123>                 =>                 <123H/>shalom<123H>
-	<h123>SAALAM</h123>                 => <h123>MALAAS</h123>                
-	HE SAID "it is a car!" AND RAN      =>      NAR DNA "!it is a car" DIAS EH
-	HE SAID "it is a car!x" AND RAN     =>     NAR DNA "it is a car!x" DIAS EH
-	-2 CELSIUS IS COLD                  =>                  DLOC SI SUISLEC -2
-	SOLVE 1*5 1-5 1/5 1+5               =>               1+5 1/5 1-5 5*1 EVLOS
-	THE RANGE IS 2.5..5                 =>                 5..2.5 SI EGNAR EH
-	'''
-
-	in_string = u'car is THE CAR in arabic'
-	print in_string + ' => ' + do_bidi(in_string, True)
-	
-	in_string = u'CAR IS the car IN ENGLISH'
-	print in_string + ' => ' + do_bidi(in_string, True)
-	
-	in_string = u'he said "IT IS 123, 456, OK"'
-	print in_string + ' => ' + do_bidi(in_string, True)
-	
-	in_string = u'he said "IT IS (123, 456), OK"'
-	print in_string + ' => ' + do_bidi(in_string, True)
-
-	in_string = u'he said "IT IS 123,456, OK"'
-	print in_string + ' => ' + do_bidi(in_string, True)
-	
-	in_string = u'he said "IT IS (123,456), OK"'
-	print in_string + ' => ' + do_bidi(in_string, True)
-	
-	in_string = u'he said "IT IS 123, 456, OK"'
-	print in_string + ' => ' + do_bidi(in_string, True)
-	
-	in_string = u'he said "IT IS (123, 456), OK"'
-	print in_string + ' => ' + do_bidi(in_string, True)
-	
-	in_string = u'HE SAID "it is 123, 456, ok"'
-	print in_string + ' => ' + do_bidi(in_string, True)
-	
-	in_string = u'<H123>shalom</H123>'
-	print in_string + ' => ' + do_bidi(in_string, True)
-	
-	in_string = u'<h123>SAALAM</h123>'
-	print in_string + ' => ' + do_bidi(in_string, True)
-	
-	in_string = u'HE SAID "it is a car!" AND RAN'
-	print in_string + ' => ' + do_bidi(in_string, True)
-
-	in_string = u'HE SAID "it is a car!x" AND RAN'
-	print in_string + ' => ' + do_bidi(in_string, True)
-	
-	in_string = u'-2 CELSIUS IS COLD'
-	print in_string + ' => ' + do_bidi(in_string, True)
-	
-	in_string = u'SOLVE 1*5 1-5 1/5 1+5'
-	print in_string + ' => ' + do_bidi(in_string, True)
-	
-	in_string = u'THE RANGE IS 2.5..5'
-	print in_string + ' => ' + do_bidi(in_string, True)
-
 def main():
-	''' main program '''
-	if len(sys.argv) == 1:
-		print 'Auto test: '
-		do_tests ()
 		
 	if len(sys.argv) == 2:
 		print do_bidi(unicode(sys.argv[1], 'utf-8'), False)
