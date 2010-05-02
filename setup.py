@@ -8,7 +8,7 @@ setup(
     name = "python-bidi",
     version = "0.1",
     url = 'http://github.com/mksoft/python-bidi',
-    license = 'MIT',
+    license = 'LGPL',
     description = "BIDI related functions",
     long_description = read('README.rst') + read('CHANGELOG.rst'),
 
@@ -24,8 +24,8 @@ setup(
     classifiers = [
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
+        'License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)',
         'Programming Language :: Python',
         'Topic :: Text Processing',
     ]
