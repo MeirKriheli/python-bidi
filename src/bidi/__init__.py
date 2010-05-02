@@ -53,18 +53,18 @@ def paragraph_level(unistr, upper_is_rtl=False):
 	# default to L
 	return 'L'
 
-def eor_level (in_string, uper_is_rtl = False):
-	''' partialy implements Find the Paragraph Level, Unicode 5.1.0 '''
-	
-	# not in Unicode 5.1.0
-	for i in range (len(in_string) -1, -1, -1):
-		if bidi_char_type(in_string[i], uper_is_rtl) == 'R':
-			return 'R'
-		elif bidi_char_type(in_string[i], uper_is_rtl) == 'L':
-			return 'L'
-			
-	# default to L
-	return 'L'
+def eor_level (unistr, upper_is_rtl = False):
+    ''' partialy implements end-of-level-run, Unicode 5.1.0 '''
+
+    # not in Unicode 5.1.0
+    for ch in unistr[::-1]:
+        if bidi_char_type(ch, upper_is_rtl) == 'R':
+            return 'R'
+        elif bidi_char_type(ch, upper_is_rtl) == 'L':
+            return 'L'
+
+    # default to L
+    return 'L'
 	
 def resolve_weak_types (char_type_array, embed_level):
 	''' partialy implements Resolving Weak Types, Unicode 5.1.0 '''
