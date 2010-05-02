@@ -18,91 +18,53 @@
 # Copyright (C) 2008-2010 Yaacov Zamir <kzamir_a_walla.co.il>,
 # Meir kriheli <meir@mksoft.co.il>
 
-# Partial implementation of Unicode Bidirectional Algorithm
-# http://www.unicode.org/unicode/reports/tr9/
-# test cases from http://imagic.weizmann.ac.il/~dov/freesw/FriBidi/
+"""
+Partial implementation of Unicode Bidirectional Algorithm
+http://www.unicode.org/unicode/reports/tr9/
+test cases from http://imagic.weizmann.ac.il/~dov/freesw/FriBidi/
 
-# Algorithm parts implemented -
-# 1. 3 levels of bidi nesting
-# 2. can recognize bidi-types of Hebrew and Latin chars
-# 3. implement bidi mirror of () and <>
+Algorithm parts implemented -
+1. 3 levels of bidi nesting
+2. can recognize bidi-types of Hebrew and Latin chars
+3. implement bidi mirror of () and <>
+"""
 
 import string
 import sys
+from unicodedata import bidirectional, mirrored
 
-def bidi_char_type(ch, uper_is_rtl = False):
-	''' partialy implements Bidirectional Character Types, Unicode 5.1.0
-	
-	L  	Left-to-Right  									Latin alphabet
-	R  	Right-to-Left  									Hebrew alphabet, and related punctuation
-	
-	EN  European Number European 				Digits
-	ES  European Number Separator  			Plus sign, minus sign
-	CS  Common Number Separator  				Colon,  comma, full stop (period)
-	
-	WS  Whitespace  										Space
-	ON  Other Neutrals  								All other characters
-	'''
-	
-	# lower case latin
-	if ch >= u'a' and ch <= u'z':
-		return 'L '
-		
-	# uper case latin
-	if ch >= u'A' and ch <= u'Z':
-		if uper_is_rtl:
-			return 'R '
-		else:
-			return 'L '
-	
-	# hebrew
-	if ch >= u'א' and ch <= u'ת':
-		return 'R '
-		
-	# numbers
-	if ch >= u'0' and ch <= u'9':
-		return 'EN'
-	
-	# plus, minus
-	if ch == u'-' or ch == u'+' or ch == u'/' or ch == u'*' or ch == u'^' or ch == u'%':
-		return 'ES'
-		
-	# number separator
-	if ch == u',' or ch == u'.' or ch == u':':
-		return 'CS'
-		
-	# white space
-	if ch == u' ':
-		return 'WS'
-		
-	# all other
-	return 'ON'
+def bidi_char_type(ch, upper_is_rtl=False):
+    
+    if upper_is_rtl and ch.isupper():
+        return 'R'
+    else:
+        return bidirectional(ch)
 
-def paragraph_level (in_string, uper_is_rtl = False):
+def paragraph_level(unistr, upper_is_rtl=False):
 	''' partialy implements Find the Paragraph Level, Unicode 5.1.0 '''
 	
 	# P2: Unicode 5.1.0
-	for i in range (0, len(in_string)):
-		if bidi_char_type(in_string[i], uper_is_rtl) == 'R ':
-			return 'R '
-		elif bidi_char_type(in_string[i], uper_is_rtl) == 'L ':
-			return 'L '
+	for ch in unistr:
+		if bidi_char_type(ch, upper_is_rtl) == 'R':
+			return 'R'
+		elif bidi_char_type(ch, upper_is_rtl) == 'L':
+			return 'L'
 			
 	# default to L
-	return 'L '
+	return 'L'
 
 def eor_level (in_string, uper_is_rtl = False):
 	''' partialy implements Find the Paragraph Level, Unicode 5.1.0 '''
 	
 	# not in Unicode 5.1.0
 	for i in range (len(in_string) -1, -1, -1):
-		if bidi_char_type(in_string[i], uper_is_rtl) == 'R ':
-			return 'R '
-		elif bidi_char_type(in_string[i], uper_is_rtl) == 'L ':
-			return 'L '
+		if bidi_char_type(in_string[i], uper_is_rtl) == 'R':
+			return 'R'
+		elif bidi_char_type(in_string[i], uper_is_rtl) == 'L':
+			return 'L'
 			
 	# default to L
-	return 'L '
+	return 'L'
 	
 def resolve_weak_types (char_type_array, embed_level):
 	''' partialy implements Resolving Weak Types, Unicode 5.1.0 '''
@@ -128,11 +90,11 @@ def resolve_weak_types (char_type_array, embed_level):
 	last_strong_type = embed_level
 	for i in range (0, len(char_type_array)):
 		curr_type = char_type_array[i]
-		if curr_type == 'L ' or curr_type == 'R ':
+		if curr_type == 'L' or curr_type == 'R':
 			last_strong_type = curr_type
 		
-		if curr_type == 'EN' and last_strong_type == 'L ':
-			char_type_array[i] = 'L '
+		if curr_type == 'EN' and last_strong_type == 'L':
+			char_type_array[i] = 'L'
 
 	
 def resolve_neutral_types (char_type_array, embed_level, eor):
@@ -153,14 +115,14 @@ def resolve_neutral_types (char_type_array, embed_level, eor):
 		if j == len(char_type_array):
 			next_type = eor
 			
-		if prev_type == 'EN' : prev_type = 'R '
-		if next_type == 'EN' : next_type = 'R '
+		if prev_type == 'EN' : prev_type = 'R'
+		if next_type == 'EN' : next_type = 'R'
 		
 		if curr_type == 'WS' or curr_type == 'ON':
-			if prev_type == 'R ' and next_type == 'R ':
-				char_type_array[i] = 'R '
-			if prev_type == 'L ' and next_type == 'L ':
-				char_type_array[i] = 'L '
+			if prev_type == 'R' and next_type == 'R':
+				char_type_array[i] = 'R'
+			if prev_type == 'L' and next_type == 'L':
+				char_type_array[i] = 'L'
 				
 	# N2: Unicode 5.1.0
 	for i in range (0, len(char_type_array)):
@@ -177,17 +139,17 @@ def resolve_implicit_levels (char_type_array, embed_level):
 	for i in range (0, len(char_type_array)):
 		curr_type = char_type_array[i]
 		
-		if embed_level == 'L ':
-			if curr_type == 'L ':
+		if embed_level == 'L':
+			if curr_type == 'L':
 				char_type_array[i] = '0 '
-			if curr_type == 'R ':
+			if curr_type == 'R':
 				char_type_array[i] = '1 '
 			if curr_type == 'EN':
 				char_type_array[i] = '2 '
 		else:
-			if curr_type == 'L ':
+			if curr_type == 'L':
 				char_type_array[i] = '2 '
-			if curr_type == 'R ':
+			if curr_type == 'R':
 				char_type_array[i] = '1 '
 			if curr_type == 'EN':
 				char_type_array[i] = '2 '
