@@ -113,41 +113,31 @@ def resolve_neutral_types (char_type_array, embed_level, eor):
         if prev_type == 'EN' : prev_type = 'R'
         if next_type == 'EN' : next_type = 'R'
         
-        if curr_type == 'WS' or curr_type == 'ON':
-            if prev_type == 'R' and next_type == 'R':
-                char_type_array[i] = 'R'
-            if prev_type == 'L' and next_type == 'L':
-                char_type_array[i] = 'L'
+        if curr_type in ('WS', 'ON') and prev_type == next_type and \
+           prev_type in ('R', 'L'):
+            char_type_array[i] = next_type
                 
     # N2: Unicode 5.1.0
-    for i in range (0, len(char_type_array)):
-        curr_type = char_type_array[i]
-        
-        if curr_type == 'WS' or curr_type == 'ON':
+    for i in range(len(char_type_array)):
+        if char_type_array[i] in ('WS', 'ON'):
             char_type_array[i] = embed_level
         
 def resolve_implicit_levels (char_type_array, embed_level):
     ''' partialy implements Resolving Implicit Levels, Unicode 5.1.0
     we only implement levels 0,1 and 2'''
     
+    IMPLICIT_LEVELS = {
+        'L': {'L': '0 ', 'R': '1 ', 'EN': '2 '},
+        'R': {'L': '2 ', 'R': '1 ', 'EN': '2 '},
+    }
+    IMPLICIT_TYPES = IMPLICIT_LEVELS['L'].keys()
+
     # I1 + I2: Unicode 5.1.0
-    for i in range (0, len(char_type_array)):
+    for i in range(len(char_type_array)):
         curr_type = char_type_array[i]
         
-        if embed_level == 'L':
-            if curr_type == 'L':
-                char_type_array[i] = '0 '
-            if curr_type == 'R':
-                char_type_array[i] = '1 '
-            if curr_type == 'EN':
-                char_type_array[i] = '2 '
-        else:
-            if curr_type == 'L':
-                char_type_array[i] = '2 '
-            if curr_type == 'R':
-                char_type_array[i] = '1 '
-            if curr_type == 'EN':
-                char_type_array[i] = '2 '
+        if curr_type in IMPLICIT_TYPES:
+            char_type_array[i] = IMPLICIT_LEVELS[embed_level][curr_type]
     
 def reordering_resolved_levels (in_string, char_type_array):
     ''' partialy implements Reordering Resolved Levels, Unicode 5.1.0 
