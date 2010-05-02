@@ -41,17 +41,17 @@ def bidi_char_type(ch, upper_is_rtl=False):
         return bidirectional(ch)
 
 def paragraph_level(unistr, upper_is_rtl=False):
-	''' partialy implements Find the Paragraph Level, Unicode 5.1.0 '''
-	
-	# P2: Unicode 5.1.0
-	for ch in unistr:
-		if bidi_char_type(ch, upper_is_rtl) == 'R':
-			return 'R'
-		elif bidi_char_type(ch, upper_is_rtl) == 'L':
-			return 'L'
-			
-	# default to L
-	return 'L'
+    ''' partialy implements Find the Paragraph Level, Unicode 5.1.0 '''
+    
+    # P2: Unicode 5.1.0
+    for ch in unistr:
+        if bidi_char_type(ch, upper_is_rtl) == 'R':
+            return 'R'
+        elif bidi_char_type(ch, upper_is_rtl) == 'L':
+            return 'L'
+            
+    # default to L
+    return 'L'
 
 def eor_level (unistr, upper_is_rtl = False):
     ''' partialy implements end-of-level-run, Unicode 5.1.0 '''
@@ -65,7 +65,7 @@ def eor_level (unistr, upper_is_rtl = False):
 
     # default to L
     return 'L'
-	
+    
 def resolve_weak_types (char_type_array, embed_level):
     ''' partialy implements Resolving Weak Types, Unicode 5.1.0 '''
 
@@ -94,238 +94,238 @@ def resolve_weak_types (char_type_array, embed_level):
 
 def resolve_neutral_types (char_type_array, embed_level, eor):
     ''' partialy implements Resolving Neutral Types, Unicode 5.1.0 '''
-
+    
     # find eor type
-
+    
     # N1: Unicode 5.1.0
     for i in range (1, len(char_type_array) - 1):
         prev_type = char_type_array[i - 1]
         curr_type = char_type_array[i - 0]
-
+        
         j = i + 1
         next_type = char_type_array[j]
         while j < len(char_type_array) and (next_type == 'WS' or next_type == 'ON'):
             next_type = char_type_array[j]
             j = j + 1
-            if j == len(char_type_array):
-                next_type = eor
-
+        if j == len(char_type_array):
+            next_type = eor
+            
         if prev_type == 'EN' : prev_type = 'R'
         if next_type == 'EN' : next_type = 'R'
-
+        
         if curr_type == 'WS' or curr_type == 'ON':
             if prev_type == 'R' and next_type == 'R':
                 char_type_array[i] = 'R'
-                if prev_type == 'L' and next_type == 'L':
-                    char_type_array[i] = 'L'
-
+            if prev_type == 'L' and next_type == 'L':
+                char_type_array[i] = 'L'
+                
     # N2: Unicode 5.1.0
     for i in range (0, len(char_type_array)):
         curr_type = char_type_array[i]
-
+        
         if curr_type == 'WS' or curr_type == 'ON':
             char_type_array[i] = embed_level
-
+        
 def resolve_implicit_levels (char_type_array, embed_level):
-	''' partialy implements Resolving Implicit Levels, Unicode 5.1.0
-	we only implement levels 0,1 and 2'''
-	
-	# I1 + I2: Unicode 5.1.0
-	for i in range (0, len(char_type_array)):
-		curr_type = char_type_array[i]
-		
-		if embed_level == 'L':
-			if curr_type == 'L':
-				char_type_array[i] = '0 '
-			if curr_type == 'R':
-				char_type_array[i] = '1 '
-			if curr_type == 'EN':
-				char_type_array[i] = '2 '
-		else:
-			if curr_type == 'L':
-				char_type_array[i] = '2 '
-			if curr_type == 'R':
-				char_type_array[i] = '1 '
-			if curr_type == 'EN':
-				char_type_array[i] = '2 '
-	
+    ''' partialy implements Resolving Implicit Levels, Unicode 5.1.0
+    we only implement levels 0,1 and 2'''
+    
+    # I1 + I2: Unicode 5.1.0
+    for i in range (0, len(char_type_array)):
+        curr_type = char_type_array[i]
+        
+        if embed_level == 'L':
+            if curr_type == 'L':
+                char_type_array[i] = '0 '
+            if curr_type == 'R':
+                char_type_array[i] = '1 '
+            if curr_type == 'EN':
+                char_type_array[i] = '2 '
+        else:
+            if curr_type == 'L':
+                char_type_array[i] = '2 '
+            if curr_type == 'R':
+                char_type_array[i] = '1 '
+            if curr_type == 'EN':
+                char_type_array[i] = '2 '
+    
 def reordering_resolved_levels (in_string, char_type_array):
-	''' partialy implements Reordering Resolved Levels, Unicode 5.1.0 
-	we only implement levels 0,1 and 2'''
-	
-	# L2: Unicode 5.1.0
-	
-	# reverse level 2
-	i = 0
-	while i < len(char_type_array):
-		curr_type = char_type_array[i]
-		
-		if curr_type == '2 ':
-			revers_start = i
-			while i < len(char_type_array) and curr_type == '2 ':
-				curr_type = char_type_array[i]
-				i = i + 1
-				
-			if i < len(char_type_array) or curr_type != '2 ':
-				revers_end = i - 2
-			else:
-				revers_end = i - 1
-				
-			in_string = reverse_string (in_string, revers_start, revers_end)
-			i = i - 1
-			
-		i = i + 1
-	
-	# reverse level 1
-	i = 0
-	while i < len(char_type_array):
-		curr_type = char_type_array[i]
-		
-		if curr_type == '1 ' or curr_type == '2 ':
-			revers_start = i
-			while i < len(char_type_array) and (curr_type == '1 ' or curr_type == '2 '):
-				curr_type = char_type_array[i]
-				i = i + 1
-				
-			if i < len(char_type_array) or curr_type == '0 ':
-				revers_end = i - 2
-			else:
-				revers_end = i - 1
-			
-			in_string = reverse_string (in_string, revers_start, revers_end)
-			i = i - 1
-			
-		i = i + 1
-	
-	return in_string
+    ''' partialy implements Reordering Resolved Levels, Unicode 5.1.0 
+    we only implement levels 0,1 and 2'''
+    
+    # L2: Unicode 5.1.0
+    
+    # reverse level 2
+    i = 0
+    while i < len(char_type_array):
+        curr_type = char_type_array[i]
+        
+        if curr_type == '2 ':
+            revers_start = i
+            while i < len(char_type_array) and curr_type == '2 ':
+                curr_type = char_type_array[i]
+                i = i + 1
+                
+            if i < len(char_type_array) or curr_type != '2 ':
+                revers_end = i - 2
+            else:
+                revers_end = i - 1
+                
+            in_string = reverse_string (in_string, revers_start, revers_end)
+            i = i - 1
+            
+        i = i + 1
+    
+    # reverse level 1
+    i = 0
+    while i < len(char_type_array):
+        curr_type = char_type_array[i]
+        
+        if curr_type == '1 ' or curr_type == '2 ':
+            revers_start = i
+            while i < len(char_type_array) and (curr_type == '1 ' or curr_type == '2 '):
+                curr_type = char_type_array[i]
+                i = i + 1
+                
+            if i < len(char_type_array) or curr_type == '0 ':
+                revers_end = i - 2
+            else:
+                revers_end = i - 1
+            
+            in_string = reverse_string (in_string, revers_start, revers_end)
+            i = i - 1
+            
+        i = i + 1
+    
+    return in_string
 
 def reverse_string (in_string, start, end):
-	''' just reverse string parts '''
-	temp_string = map(lambda x:x, in_string)
-	out_string = map(lambda x:x, in_string)
-	
-	for i in range(start, end + 1):
-		out_string[i] = temp_string[start + end - i]
-	
-	return string.join(out_string, '')
+    ''' just reverse string parts '''
+    temp_string = map(lambda x:x, in_string)
+    out_string = map(lambda x:x, in_string)
+    
+    for i in range(start, end + 1):
+        out_string[i] = temp_string[start + end - i]
+    
+    return string.join(out_string, '')
 
 
 def applay_bidi_mirrore (in_string, char_type_array):
-	''' partialy implements Bidi_Mirrored, Unicode 5.1.0 '''
-	out_string = map(lambda x:x, in_string)
-	
-	for i in range (0, len(char_type_array)):
-		curr_type = char_type_array[i]
-		
-		if curr_type != '0 ':
-			if out_string[i] == '(':
-				out_string[i] = ')'
-			elif out_string[i] == ')':
-				out_string[i] = '('
-			if out_string[i] == '<':
-				out_string[i] = '>'
-			elif out_string[i] == '>':
-				out_string[i] = '<'
-	
-	return string.join(out_string, '')
-	
+    ''' partialy implements Bidi_Mirrored, Unicode 5.1.0 '''
+    out_string = map(lambda x:x, in_string)
+    
+    for i in range (0, len(char_type_array)):
+        curr_type = char_type_array[i]
+        
+        if curr_type != '0 ':
+            if out_string[i] == '(':
+                out_string[i] = ')'
+            elif out_string[i] == ')':
+                out_string[i] = '('
+            if out_string[i] == '<':
+                out_string[i] = '>'
+            elif out_string[i] == '>':
+                out_string[i] = '<'
+    
+    return string.join(out_string, '')
+    
 def string_to_letters (in_string):
-	''' string to letters array '''
-	return map(lambda x: x + u' ', in_string)
+    ''' string to letters array '''
+    return map(lambda x: x + u' ', in_string)
 
 def string_to_bidi_char_types (in_string, uper_is_rtl = False):
-	''' string to bidi char types array '''
-	return map(lambda x: bidi_char_type(x, uper_is_rtl), in_string)
+    ''' string to bidi char types array '''
+    return map(lambda x: bidi_char_type(x, uper_is_rtl), in_string)
 
 def do_bidi (in_string, uper_is_rtl = False):
-	''' wrapper for doing bidi on strings '''
-	# get input
-	char_array = string_to_letters (in_string)
-	embed_level = paragraph_level (in_string, uper_is_rtl)
-	eor = eor_level (in_string, uper_is_rtl)
-	
-	# get char types
-	char_type_array  = string_to_bidi_char_types (in_string, uper_is_rtl)
-	
-	# resolve week char types
-	resolve_weak_types (char_type_array, embed_level)
-	
-	# resolve neutral char types
-	resolve_neutral_types (char_type_array, embed_level, eor)
-	
-	# resolve mplicit levels
-	resolve_implicit_levels (char_type_array, embed_level)
-	
-	# applay bidi mirror
-	out_string = applay_bidi_mirrore (in_string, char_type_array)
+    ''' wrapper for doing bidi on strings '''
+    # get input
+    char_array = string_to_letters (in_string)
+    embed_level = paragraph_level (in_string, uper_is_rtl)
+    eor = eor_level (in_string, uper_is_rtl)
+    
+    # get char types
+    char_type_array  = string_to_bidi_char_types (in_string, uper_is_rtl)
+    
+    # resolve week char types
+    resolve_weak_types (char_type_array, embed_level)
+    
+    # resolve neutral char types
+    resolve_neutral_types (char_type_array, embed_level, eor)
+    
+    # resolve mplicit levels
+    resolve_implicit_levels (char_type_array, embed_level)
+    
+    # applay bidi mirror
+    out_string = applay_bidi_mirrore (in_string, char_type_array)
 
-	# reorder string
-	return reordering_resolved_levels (out_string, char_type_array)
-	
+    # reorder string
+    return reordering_resolved_levels (out_string, char_type_array)
+    
 def debug_string (in_string, uper_is_rtl = False):
-	''' wrapper for doing bidi on strings with debug information output '''
-	# get input
-	char_array = string_to_letters (in_string)
-	embed_level = paragraph_level (in_string, uper_is_rtl)
-	eor = eor_level (in_string, uper_is_rtl)
-	
-	# get char types
-	char_type_array  = string_to_bidi_char_types (in_string, uper_is_rtl)
-	
-	# print input string
-	print string.join(char_array, '')
-	print string.join(char_type_array, '')
-	
-	# resolve week char types
-	resolve_weak_types (char_type_array, embed_level)
-	print string.join(char_type_array, '')
-	
-	# resolve neutral char types
-	resolve_neutral_types (char_type_array, embed_level, eor)
-	print string.join(char_type_array, '')
-	
-	# resolve mplicit levels
-	resolve_implicit_levels (char_type_array, embed_level)
-	print string.join(char_type_array, '')
-	
-	# applay bidi mirror
-	out_string = applay_bidi_mirrore (in_string, char_type_array)
-	
-	# reorder string
-	out_string = reordering_resolved_levels (out_string, char_type_array)
-	
-	print in_string
-	print out_string
-	
-	# print embed level
-	print 'Paragraph level: ' + paragraph_level (in_string, uper_is_rtl) + eor_level (in_string, uper_is_rtl)
+    ''' wrapper for doing bidi on strings with debug information output '''
+    # get input
+    char_array = string_to_letters (in_string)
+    embed_level = paragraph_level (in_string, uper_is_rtl)
+    eor = eor_level (in_string, uper_is_rtl)
+    
+    # get char types
+    char_type_array  = string_to_bidi_char_types (in_string, uper_is_rtl)
+    
+    # print input string
+    print string.join(char_array, '')
+    print string.join(char_type_array, '')
+    
+    # resolve week char types
+    resolve_weak_types (char_type_array, embed_level)
+    print string.join(char_type_array, '')
+    
+    # resolve neutral char types
+    resolve_neutral_types (char_type_array, embed_level, eor)
+    print string.join(char_type_array, '')
+    
+    # resolve mplicit levels
+    resolve_implicit_levels (char_type_array, embed_level)
+    print string.join(char_type_array, '')
+    
+    # applay bidi mirror
+    out_string = applay_bidi_mirrore (in_string, char_type_array)
+    
+    # reorder string
+    out_string = reordering_resolved_levels (out_string, char_type_array)
+    
+    print in_string
+    print out_string
+    
+    # print embed level
+    print 'Paragraph level: ' + paragraph_level (in_string, uper_is_rtl) + eor_level (in_string, uper_is_rtl)
 
 def main():
-		
-	if len(sys.argv) == 2:
-		print do_bidi(unicode(sys.argv[1], 'utf-8'), False)
-		sys.exit(0)
-	
-	if len(sys.argv) == 3 and sys.argv[2] == '--capsrtl':
-		print do_bidi(unicode(sys.argv[1], 'utf-8'), True)
-		sys.exit(0)
-	
-	if len(sys.argv) == 3 and sys.argv[2] == '--debug':
-		debug_string(unicode(sys.argv[1], 'utf-8'), False)
-		sys.exit(0)
-	
-	if len(sys.argv) == 4 and (sys.argv[2] == '--debug' or sys.argv[3] == '--debug') \
-			and (sys.argv[2] == '--capsrtl' or sys.argv[3] == '--capsrtl'):
-		debug_string(unicode(sys.argv[1], 'utf-8'), True)
-		sys.exit(0)
-	
-	print
-	print
-	print 'usage: pybidi.py "string" [--caprtl] [--debug]'
-	print 'caprtl - Caps Latin chars are rtl (testing)'
-	print 'debug - Show algorithm steps'
-	
-	sys.exit(1)
-		
+        
+    if len(sys.argv) == 2:
+        print do_bidi(unicode(sys.argv[1], 'utf-8'), False)
+        sys.exit(0)
+    
+    if len(sys.argv) == 3 and sys.argv[2] == '--capsrtl':
+        print do_bidi(unicode(sys.argv[1], 'utf-8'), True)
+        sys.exit(0)
+    
+    if len(sys.argv) == 3 and sys.argv[2] == '--debug':
+        debug_string(unicode(sys.argv[1], 'utf-8'), False)
+        sys.exit(0)
+    
+    if len(sys.argv) == 4 and (sys.argv[2] == '--debug' or sys.argv[3] == '--debug') \
+            and (sys.argv[2] == '--capsrtl' or sys.argv[3] == '--capsrtl'):
+        debug_string(unicode(sys.argv[1], 'utf-8'), True)
+        sys.exit(0)
+    
+    print
+    print
+    print 'usage: pybidi.py "string" [--caprtl] [--debug]'
+    print 'caprtl - Caps Latin chars are rtl (testing)'
+    print 'debug - Show algorithm steps'
+    
+    sys.exit(1)
+        
 if __name__ == "__main__":
     main()
