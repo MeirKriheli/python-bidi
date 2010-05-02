@@ -1,7 +1,27 @@
 import unittest
+import unicodedata
 from bidi import do_bidi
+from bidi.algorithm import bidirectional_uppercase_rtl, paragraph_level
 
 class TestBidiAlgorithm(unittest.TestCase):
+
+    def testbidirectional_uppercase_rtl(self):
+        '''Tests treating upper case as RTL type'''
+        self.assertEqual(bidirectional_uppercase_rtl(u'A'), 'R')
+        self.assertEqual(bidirectional_uppercase_rtl(u'a'), 'L')
+
+        alef = unicodedata.lookup('HEBREW LETTER ALEF')
+        self.assertEqual(bidirectional_uppercase_rtl(alef), 'R')
+
+    def test_paragraph_level(self):
+        '''Test P2 and P3 implemntation'''
+        
+        self.assertEqual(paragraph_level(u'car is THE CAR in arabic'), 0)
+
+        self.assertEqual(paragraph_level(u'<H123>shalom</H123>',
+                                         bidirectional_uppercase_rtl), 1)
+        
+        self.assertEqual(paragraph_level(u'123 \u05e9\u05dc\u05d5\u05dd'), 1)
 
     def test_with_upper_is_rtl(self):
         '''Tests from http://imagic.weizmann.ac.il/~dov/freesw/FriBidi/ '''

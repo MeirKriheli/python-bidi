@@ -33,6 +33,8 @@ import string
 import sys
 from unicodedata import bidirectional, mirrored
 
+
+    
 def bidi_char_type(ch, upper_is_rtl=False):
     
     if upper_is_rtl and ch.isupper():
@@ -52,7 +54,7 @@ def paragraph_level(unistr, upper_is_rtl=False):
     # default to L
     return 'L'
 
-def eor_level(unistr, upper_is_rtl = False):
+def eor_level (unistr, upper_is_rtl = False):
     ''' partialy implements end-of-level-run, Unicode 5.1.0 '''
 
     # not in Unicode 5.1.0
