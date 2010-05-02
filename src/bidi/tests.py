@@ -11,18 +11,42 @@ class TestBidiAlgorithm(unittest.TestCase):
 
         self.assertEqual(do_bidi(u'CAR IS the car IN ENGLISH', True),
                     u'HSILGNE NI the car SI RAC')
-        #he said "IT IS 123, 456, OK"        => he said "KO ,456 ,123 SI TI"       
-        #he said "IT IS (123, 456), OK"      => he said "KO ,(456 ,123) SI TI"     
-        #he said "IT IS 123,456, OK"         => he said "KO ,123,456 SI TI"        
-        #he said "IT IS (123,456), OK"       => he said "KO ,(123,456) SI TI"      
-        #HE SAID "it is 123, 456, ok"        =>        "it is 123, 456, ok" DIAS EH
-        #<H123>shalom</H123>                 =>                 <123H/>shalom<123H>
-        #<h123>SAALAM</h123>                 => <h123>MALAAS</h123>                
-        #HE SAID "it is a car!" AND RAN      =>      NAR DNA "!it is a car" DIAS EH
-        #HE SAID "it is a car!x" AND RAN     =>     NAR DNA "it is a car!x" DIAS EH
-        #-2 CELSIUS IS COLD                  =>                  DLOC SI SUISLEC -2
-        #SOLVE 1*5 1-5 1/5 1+5               =>               1+5 1/5 1-5 5*1 EVLOS
-        #THE RANGE IS 2.5..5                 =>                 5..2.5 SI EGNAR EH
+
+        self.assertEqual(do_bidi(u'he said "IT IS 123, 456, OK"', True),
+                    u'he said "KO ,456 ,123 SI TI"')
+
+        self.assertEqual(do_bidi(u'he said "IT IS (123, 456), OK"', True),
+                    u'he said "KO ,(456 ,123) SI TI"')
+
+        self.assertEqual(do_bidi(u'he said "IT IS 123,456, OK"', True),
+                    u'he said "KO ,123,456 SI TI"')
+
+        self.assertEqual(do_bidi(u'he said "IT IS (123,456), OK"', True),
+                    u'he said "KO ,(123,456) SI TI"')
+
+        self.assertEqual(do_bidi(u'HE SAID "it is 123, 456, ok"', True),
+                    u'"it is 123, 456, ok" DIAS EH')
+
+        self.assertEqual(do_bidi(u'<H123>shalom</H123>',True),
+                    u'<123H/>shalom<123H>')
+
+        self.assertEqual(do_bidi(u'<h123>SAALAM</h123>', True),
+                    u'<h123>MALAAS</h123>')
+
+        self.assertEqual(do_bidi(u'HE SAID "it is a car!" AND RAN', True),
+                    u'NAR DNA "!it is a car" DIAS EH')
+
+        self.assertEqual(do_bidi(u'HE SAID "it is a car!x" AND RAN', True),
+                    u'NAR DNA "it is a car!x" DIAS EH')
+
+        self.assertEqual(do_bidi(u'SOLVE 1*5 1-5 1/5 1+5', True),
+                    u'1+5 1/5 1-5 5*1 EVLOS')
+
+        self.assertEqual(do_bidi(u'THE RANGE IS 2.5..5', True),
+                    u'5..2.5 SI EGNAR EHT')
+
+        self.assertEqual(do_bidi(u'-2 CELSIUS IS COLD', True),
+                    u'DLOC SI SUISLEC -2')
 
 if __name__ == '__main__':
     unittest.main()
