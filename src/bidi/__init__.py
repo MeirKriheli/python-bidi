@@ -45,23 +45,21 @@ def paragraph_level(unistr, upper_is_rtl=False):
     
     # P2: Unicode 5.1.0
     for ch in unistr:
-        if bidi_char_type(ch, upper_is_rtl) == 'R':
-            return 'R'
-        elif bidi_char_type(ch, upper_is_rtl) == 'L':
-            return 'L'
-            
+        bidi_type = bidi_char_type(ch, upper_is_rtl)
+        if bidi_type in ('R', 'L'):
+            return bidi_type
+
     # default to L
     return 'L'
 
-def eor_level (unistr, upper_is_rtl = False):
+def eor_level(unistr, upper_is_rtl = False):
     ''' partialy implements end-of-level-run, Unicode 5.1.0 '''
 
     # not in Unicode 5.1.0
     for ch in unistr[::-1]:
-        if bidi_char_type(ch, upper_is_rtl) == 'R':
-            return 'R'
-        elif bidi_char_type(ch, upper_is_rtl) == 'L':
-            return 'L'
+        bidi_type = bidi_char_type(ch, upper_is_rtl)
+        if bidi_type in ('R', 'L'):
+            return bidi_type
 
     # default to L
     return 'L'
