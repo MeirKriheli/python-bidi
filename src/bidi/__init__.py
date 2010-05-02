@@ -93,39 +93,39 @@ def resolve_weak_types (char_type_array, embed_level):
 
 
 def resolve_neutral_types (char_type_array, embed_level, eor):
-	''' partialy implements Resolving Neutral Types, Unicode 5.1.0 '''
-	
-	# find eor type
-	
-	# N1: Unicode 5.1.0
-	for i in range (1, len(char_type_array) - 1):
-		prev_type = char_type_array[i - 1]
-		curr_type = char_type_array[i - 0]
-		
-		j = i + 1
-		next_type = char_type_array[j]
-		while j < len(char_type_array) and (next_type == 'WS' or next_type == 'ON'):
-			next_type = char_type_array[j]
-			j = j + 1
-		if j == len(char_type_array):
-			next_type = eor
-			
-		if prev_type == 'EN' : prev_type = 'R'
-		if next_type == 'EN' : next_type = 'R'
-		
-		if curr_type == 'WS' or curr_type == 'ON':
-			if prev_type == 'R' and next_type == 'R':
-				char_type_array[i] = 'R'
-			if prev_type == 'L' and next_type == 'L':
-				char_type_array[i] = 'L'
-				
-	# N2: Unicode 5.1.0
-	for i in range (0, len(char_type_array)):
-		curr_type = char_type_array[i]
-		
-		if curr_type == 'WS' or curr_type == 'ON':
-			char_type_array[i] = embed_level
-		
+    ''' partialy implements Resolving Neutral Types, Unicode 5.1.0 '''
+
+    # find eor type
+
+    # N1: Unicode 5.1.0
+    for i in range (1, len(char_type_array) - 1):
+        prev_type = char_type_array[i - 1]
+        curr_type = char_type_array[i - 0]
+
+        j = i + 1
+        next_type = char_type_array[j]
+        while j < len(char_type_array) and (next_type == 'WS' or next_type == 'ON'):
+            next_type = char_type_array[j]
+            j = j + 1
+            if j == len(char_type_array):
+                next_type = eor
+
+        if prev_type == 'EN' : prev_type = 'R'
+        if next_type == 'EN' : next_type = 'R'
+
+        if curr_type == 'WS' or curr_type == 'ON':
+            if prev_type == 'R' and next_type == 'R':
+                char_type_array[i] = 'R'
+                if prev_type == 'L' and next_type == 'L':
+                    char_type_array[i] = 'L'
+
+    # N2: Unicode 5.1.0
+    for i in range (0, len(char_type_array)):
+        curr_type = char_type_array[i]
+
+        if curr_type == 'WS' or curr_type == 'ON':
+            char_type_array[i] = embed_level
+
 def resolve_implicit_levels (char_type_array, embed_level):
 	''' partialy implements Resolving Implicit Levels, Unicode 5.1.0
 	we only implement levels 0,1 and 2'''
