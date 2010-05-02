@@ -67,36 +67,31 @@ def eor_level (unistr, upper_is_rtl = False):
     return 'L'
 	
 def resolve_weak_types (char_type_array, embed_level):
-	''' partialy implements Resolving Weak Types, Unicode 5.1.0 '''
-	
-	# W4: Unicode 5.1.0
-	for i in range (1, len(char_type_array) - 1):
-		prev_type = char_type_array[i - 1]
-		curr_type = char_type_array[i - 0]
-		next_type = char_type_array[i + 1]
-		
-		if (curr_type == 'ES' or curr_type == 'CS') and \
-			(prev_type == 'EN' and next_type == 'EN'):
-			char_type_array[i] = 'EN'
-	
-	# W5: Unicode 5.1.0
-	for i in range (0, len(char_type_array)):
-		curr_type = char_type_array[i]
-		
-		if (curr_type == 'ES' or curr_type == 'CS'):
-			char_type_array[i] = 'ON'
-			
-	# W7: Unicode 5.1.0
-	last_strong_type = embed_level
-	for i in range (0, len(char_type_array)):
-		curr_type = char_type_array[i]
-		if curr_type == 'L' or curr_type == 'R':
-			last_strong_type = curr_type
-		
-		if curr_type == 'EN' and last_strong_type == 'L':
-			char_type_array[i] = 'L'
+    ''' partialy implements Resolving Weak Types, Unicode 5.1.0 '''
 
-	
+    # W4: Unicode 5.1.0
+    for i in range(1, len(char_type_array) - 1):
+        prev_type, curr_type, next_type = char_type_array[i-1:i+2]
+
+        if curr_type in ('ES','CS') and prev_type == 'EN' == next_type == 'EN':
+            char_type_array[i] = 'EN'
+
+    # W5: Unicode 5.1.0
+    for i in range(len(char_type_array)):
+        if char_type_array[i] in ('ES','CS'):
+            char_type_array[i] = 'ON'
+
+    # W7: Unicode 5.1.0
+    last_strong_type = embed_level
+    for i in range(len(char_type_array)):
+        curr_type = char_type_array[i]
+        if curr_type in('L', 'R'):
+            last_strong_type = curr_type
+
+        if curr_type == 'EN' and last_strong_type == 'L':
+            char_type_array[i] = 'L'
+
+
 def resolve_neutral_types (char_type_array, embed_level, eor):
 	''' partialy implements Resolving Neutral Types, Unicode 5.1.0 '''
 	
