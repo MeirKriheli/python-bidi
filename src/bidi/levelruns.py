@@ -13,3 +13,6 @@ class LevelRun(object):
         self.chars = deque(extended_chars)
         self.chars.appendleft( TextOrdering(sor) )
         self.chars.append( TextOrdering(eor) )
+
+    def __repr__(self):
+        return '<%s: %s>' % (self.__class__.__name__, repr(self.chars))
