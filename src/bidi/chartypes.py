@@ -11,7 +11,7 @@ class ExChar(object):
         self.bidi_type = unicodedata.bidirectional(unicode_char)
 
         # Those will be filled later on by the algorithm
-        self.embed_level, self.prev_char, self.next_char = None
+        self.embed_level = self.prev_char = self.next_char = None
 
     
     def get_embedding_direction(self):
