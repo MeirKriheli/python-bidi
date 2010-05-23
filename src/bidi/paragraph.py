@@ -2,6 +2,7 @@
 
 from collections import deque
 from chartypes import ExChar, ExCharUpperRtl
+from levelruns import LevelRun
 
 PARAGRAPH_LEVELS = { 'L':0, 'AL':1, 'R': 1 }
 EXPLICIT_LEVEL_LIMIT = 62
@@ -42,6 +43,7 @@ class Paragraph(object):
 
         self.storage = deque()
         self.level = None
+        self.level_runs = deque()
 
         if upper_is_rtl:
             self._char_type = ExCharUpperRtl
@@ -156,6 +158,43 @@ class Paragraph(object):
                 new_storage.append(ex_ch)
         self.storage = new_storage
 
+    def split_level_runs(self):
+        """Split the storage to various level runs.
+
+        Applies X10. See http://unicode.org/reports/tr9/#X10
+        """
+        #run level depends on the higher of the two levels on either side of
+        #the boundary If the higher level is odd, the type is R; otherwise,
+        #it is L
+        calc_level_run = lambda b_l, b_r: ['L', 'R'][max(b_l, b_r) % 2]
+
+        sor = eor = None
+        level_run_chars = []
+
+        for ex_ch in self.storage:
+            if not ex_ch.prev_char:
+                sor = calc_level_run(self.level, ex_ch.embed_level)
+                curr_level = prev_level = ex_ch.embed_level
+            else:
+                curr_level, prev_level = \
+                    ex_ch.embed_level, ex_ch.prev_char.embed_level
+
+            if curr_level != prev_level:
+                eor = calc_level_run(prev_level, curr_level)
+                lrun = LevelRun(sor, eor, level_run_chars)
+                self.level_runs.append(lrun)
+
+                sor = eor
+                level_run_chars = []
+
+            level_run_chars.append(ex_ch)
+
+        # for the last char/runlevel
+        eor = calc_level_run(curr_level, self.level)
+        lrun = LevelRun(sor, eor, level_run_chars)
+        self.level_runs.append(lrun)
+
+
     def get_display(self):
         """Calls the algorithm steps, and returns the formatted display"""
 
@@ -163,6 +202,7 @@ class Paragraph(object):
             self.set_storage_and_level,
             self.explicit_embed_and_overrides,
             self.remove_embed_and_overrides,
+            self.split_level_runs
         )
 
         for step in algorithm_steps:
