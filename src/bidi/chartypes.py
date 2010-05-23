@@ -4,14 +4,15 @@ import unicodedata
 class ExChar(object):
     """Extended char for unicode bidirectional algorithm"""
 
-    def __init__(self, unicode_char):
+    def __init__(self, unicode_char, prev_char=None, next_char=None):
         """Get the unicode_char and pre populate the fields"""
 
         self.uni_char = unicode_char
         self.bidi_type = unicodedata.bidirectional(unicode_char)
 
         # Those will be filled later on by the algorithm
-        self.embed_level = self.prev_char = self.next_char = None
+        self.embed_level = None
+        self.prev_char, self.next_char = prev_char, next_char
 
     
     def get_embedding_direction(self):
@@ -55,12 +56,12 @@ class ExCharUpperRtl(ExChar):
 
     """
 
-    def __init__(self, unicode_char):
+    def __init__(self, unicode_char, prev_char=None, next_char=None):
         """Treats unicode_char's bidi_type as strong R in case of
         upper case.
 
         """
-        super(ExCharUpperRtl, self).__init__(unicode_char)
+        super(ExCharUpperRtl, self).__init__(unicode_char, prev_char, next_char)
 
         if unicode_char.isupper():
             self.bidi_type = 'R'
