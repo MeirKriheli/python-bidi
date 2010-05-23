@@ -4,6 +4,21 @@ from collections import deque
 from chartypes import ExChar, ExCharUpperRtl
 
 PARAGRAPH_LEVELS = { 'L':0, 'AL':1, 'R': 1 }
+EXPLICIT_LEVEL_LIMIT = 62
+
+_LEAST_GREATER_ODD = lambda x: (x + 1) | 1
+_LEAST_GREATER_EVEN = lambda x: (x + 2) & ~1
+
+X2_X5_MAPPINGS = {
+    'RLE': (_LEAST_GREATER_ODD, ''),
+    'LRE': (_LEAST_GREATER_EVEN, ''),
+    'RLO': (_LEAST_GREATER_ODD, 'R'),
+    'LRO': (_LEAST_GREATER_EVEN, 'L'),
+}
+
+# Added 'B' so X6 won't execute in that case and X8 will run it's course
+X6_IGNORED = X2_X5_MAPPINGS.keys() + ['BN', 'PDF', 'B']
+X9_REMOVED = X2_X5_MAPPINGS.keys() + ['BN', 'PDF']
 
 class Paragraph(object):
     """The entry point for the bidirecional algorithm.
@@ -11,7 +26,6 @@ class Paragraph(object):
     Implement X1-X10 including spliting to run levels.
     
     """
-
 
     def __init__(self, unicode_or_str, encoding='utf-8', upper_is_rtl=False):
         """Accepts unicode or string. In case it's a string, `encoding`
@@ -57,9 +71,99 @@ class Paragraph(object):
         if self.level is None:
             self.level = PARAGRAPH_LEVELS['L']
 
-    def get_display(self):
+    def explicit_embed_and_overrides(self):
+        """Apply X1 to X8 rules of the unicode algorithm.
 
-        algorithm_steps = [ self.set_storage_and_level ]
+        See http://unicode.org/reports/tr9/#Explicit_Levels_and_Directions
+
+        """
+
+        overflow_counter = almost_overflow_counter = 0
+        directional_override = ''
+        levels = deque()
+
+        #X1
+        embedding_level = self.level
+
+        for ex_ch in self.storage:
+            bidi_type = ex_ch.bidi_type
+
+            level_func, override = X2_X5_MAPPINGS.get(bidi_type, (None, None))
+
+            if level_func:
+                # So this is X2 to X5
+                # if we've past EXPLICIT_LEVEL_LIMIT, note it and do nothing
+
+                if overflow_counter != 0:
+                    overflow_counter += 1
+                    continue
+
+                new_level = level_func(embedding_level)
+                if new_level < EXPLICIT_LEVEL_LIMIT:
+                    levels.append( (embedding_level, directional_override) )
+                    embedding_level, directional_override = new_level, override
+
+                elif embedding_level == EXPLICIT_LEVEL_LIMIT -2:
+                    # The new level is invalid, but a valid level can still be
+                    # achieved if this level is 60 and we encounter an RLE or 
+                    # RLO further on.  So record that we 'almost' overflowed.
+                    almost_overflow_counter += 1
+
+                else:
+                    overflow_counter += 1
+            else:
+                # X6
+                if bidi_type not in X6_IGNORED:
+                    ex_ch.embed_level = embedding_level
+                    if directional_override:
+                        ex_ch.bidi_type = directional_override
+
+                # X7
+                elif bidi_type == 'PDF':
+                    if overflow_counter:
+                        overflow_counter -= 1
+                    elif almost_overflow_counter and \
+                            embedding_level != EXPLICIT_LEVEL_LIMIT - 1:
+                        almost_overflow_counter -= 1
+                    elif levels:
+                        embedding_level, directional_override = levels.pop()
+
+                # X8
+                elif bidi_type == 'B':
+                    levels.clear()
+                    overflow_counter = almost_overflow_counter = 0
+                    embedding_level = ex_ch.embed_level =  self.level
+                    directional_override = ''
+
+    def remove_embed_and_overrides(self):
+        """Removes the explicit embeds and overrides of types
+        RLE, LRE, RLO, LRO, PDF, and BN. Adjusts extended chars
+        next and prev as well
+
+        Applies X9. See http://unicode.org/reports/tr9/#X9
+
+        """
+        new_storage = deque()
+
+        for ex_ch in self.storage:
+            if ex_ch.bidi_type in X9_REMOVED:
+                # handle next, prev
+                if ex_ch.prev_char:
+                    ex_ch.prev_char.next_char = ex_ch.next_char
+                if ex_ch.next_char:
+                    ex_ch.next_char.prev_char = ex_ch.prev_char
+            else:
+                new_storage.append(ex_ch)
+        self.storage = new_storage
+
+    def get_display(self):
+        """Calls the algorithm steps, and returns the formatted display"""
+
+        algorithm_steps = (
+            self.set_storage_and_level,
+            self.explicit_embed_and_overrides,
+            self.remove_embed_and_overrides,
+        )
 
         for step in algorithm_steps:
             step()
