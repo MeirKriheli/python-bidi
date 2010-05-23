@@ -275,19 +275,22 @@ def resolve_neutral_types(sor, eor, extended_chars):
     # used at level run boundaries.
 
 
+    #TODO seems buggy for now
     dummy = [{'biditype':sor}] + extended_chars + [{'biditype':eor}]
     for i in range(1, len(dummy)-1):
         prev_type, curr_type, next_type = dummy[i-1:i+2]
+        print prev_type, curr_type, next_type 
         if prev_type in ('EN', 'AN'):
             prev_type = 'R'
 
         if next_type in ('EN', 'AN'):
             next_type = 'R'
 
-        if curr_type == 'ON' and prev_type == next_type:
-            dummy[i]['biditype'] = next_type
-        else:
-            dummy[i]['biditype'] = ['L', 'R'][dummy[i]['level'] % 2]
+        if curr_type == 'ON':
+            if prev_type == next_type:
+                dummy[i]['biditype'] = next_type
+            else:
+                dummy[i]['biditype'] = ['L', 'R'][dummy[i]['level'] % 2]
 
     return sor, eor, dummy[1:-1]
 
