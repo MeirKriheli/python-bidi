@@ -51,8 +51,9 @@ class ExChar(object):
         return None
 
     def __repr__(self):
-        return '<%s %s (bidi type:%s)>' % (self.__class__.__name__,
-                    unicodedata.name(self.uni_char), self.bidi_type)
+        return '<%s %s (bidi type:%s, level:%s)>' % (self.__class__.__name__,
+                    unicodedata.name(self.uni_char), self.bidi_type,
+                                                     self.embed_level)
 
 class ExCharUpperRtl(ExChar):
     """An extended char which treats upper case chars as a strong 'R'
