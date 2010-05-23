@@ -128,8 +128,45 @@ def explicit_embeddings_and_overrides(extended_chars, paragraph_level=None):
 
             yield ex_ch
 
-def resolve_weak_types(extended_chars):
-    pass
+def resolve_runlevels(extended_chars, paragraph_level=None):
+    """Split to chars of same run level and `sor` and `eor` for each level.
+
+    Yields (sor, eor, [extended chars....])
+
+    Implements X10.
+
+    """
+    paragraph_level = paragraph_level or PARAGRAPH_LEVELS['L']
+    
+    #run level depends on the higher of the two levels on either side of the 
+    #boundary If the higher level is odd, the type is R; otherwise, it is L
+    calc_runlevel = lambda b_left, b_right: ['L', 'R'][max(b_left, b_right) % 2]
+
+    level_chars = []
+    sor = None
+    prev_char = None
+
+    for ex_ch in extended_chars:
+        if prev_char:
+            curr_level, prev_level = ex_ch['level'], prev_char['level']
+        else:
+            # First char
+            curr_level = prev_level = ex_ch['level']
+            sor = calc_runlevel(paragraph_level, curr_level)
+
+        if prev_level != curr_level:
+            eor = calc_runlevel(prev_level, curr_level)
+            yield (sor, eor, level_chars)
+
+            sor = eor
+            level_chars = []
+
+        prev_char = ex_ch
+        level_chars.append(ex_ch)
+
+    # for the last char/runlevel
+    eor = calc_runlevel(curr_level, paragraph_level)
+    yield (sor, eor, level_chars)
 
 if __name__ == '__main__':
     unistr = u'<H123>shalom</H123>'
@@ -137,8 +174,6 @@ if __name__ == '__main__':
     p_level = paragraph_level(unistr, bidirectional_uppercase_rtl)
     
     ex_chars = map_unistr(unistr, bidirectional_uppercase_rtl)
-    ex_chars_with_levels = list(explicit_embeddings_and_overrides(ex_chars, p_level))
+    ex_chars_with_levels = explicit_embeddings_and_overrides(ex_chars, p_level)
 
-    print ''.join([c['ch'] for c in ex_chars_with_levels])
-    print ''.join([str(c['level']) for c in ex_chars_with_levels])
-    print ''.join([str(c['biditype']) for c in ex_chars_with_levels])
+    run_levels = resolve_runlevels(ex_chars_with_levels, p_level)
