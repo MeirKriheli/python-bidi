@@ -39,13 +39,19 @@ class Paragraph(object):
         embedding level (P2 and P3).
 
         """
+        prev = None
         for unicode_char in self.text:
-            extended_char = self._char_type(unicode_char)
+            extended_char = self._char_type(unicode_char, prev_char=prev)
             self.storage.append(extended_char)
 
             # P2
             if self.level is None:
                 self.level = PARAGRAPH_LEVELS.get(extended_char.bidi_type, None)
+
+            if prev:
+                prev.next_char = extended_char
+
+            prev = extended_char
 
         # P3
         if self.level is None:
