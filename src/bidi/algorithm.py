@@ -1,7 +1,10 @@
+"""Implements Unicode 5.2.0 Bidirectional Algorithm"""
+
 from unicodedata import bidirectional, mirrored
 from collections import namedtuple, deque
 
 PARAGRAPH_LEVELS = { 'L':0, 'AL':1, 'R': 1 }
+PARAGRAPH_LEVELS_KEYS = PARAGRAPH_LEVELS.keys()
 
 def bidirectional_uppercase_rtl(ch):
     '''Return the bidirectional type of a unicode char, treating upper
@@ -166,14 +169,115 @@ def resolve_runlevels(extended_chars, paragraph_level=None):
 
     # for the last char/runlevel
     eor = calc_runlevel(curr_level, paragraph_level)
-    yield (sor, eor, level_chars)
+    yield [sor, eor, level_chars]
+
+def resolve_weak_types(sor, eor, extended_chars):
+    """Implement W1-W7 resoloving weak types for a single run level"""
+
+    prev_char = None
+    prev_strong = sor
+
+    #W1, W2
+    for ex_ch in extended_chars:
+        biditype = ex_ch['biditype']
+
+        #W1
+        if biditype == 'NSM':
+            if prev_char:
+                biditype = ex_ch['biditype'] = prev_char['biditype']
+            else:
+                biditype = ex_ch['biditype'] = sor
+
+        #W2
+        if biditype == 'EN' and prev_strong == 'AL':
+            biditype = ex_ch['biditype'] = 'AN'
+
+
+        prev_char = ex_ch
+        if ex_ch in PARAGRAPH_LEVELS_KEYS:
+            prev_strong = ex_ch['biditype']
+
+    # W3 -  Change all ALs to R
+    for ex_ch in extended_chars:
+        if ex_ch['biditype'] == 'AL':
+            ex_ch['biditype'] = 'R'
+
+    # W4 -  A single European separator between two European numbers changes
+    # to a European number. A single common separator between two numbers of
+    # the same type changes to that type
+    if len(extended_chars) > 2:
+        for i in range(1, len(extended_chars)-1):
+            prev_type, curr_type, next_type = \
+                    [c['biditype'] for c in extended_chars[i-1:i+2]]
+
+            if (curr_type == 'ES') and (next_type == prev_type == 'EN'):
+                extended_chars[i]['biditype'] = 'EN'
+            
+            elif (curr_type == 'CS') and (next_type == prev_type) and \
+                    (prev_type in ('EN', 'AN')):
+                extended_chars[i]['biditype'] = prev_type
+
+    # W5 -  A sequence of European terminators adjacent to European numbers
+    # changes to all European numbers.
+    et_en_range = []
+    et_found = en_found = False
+
+    for ex_ch in extended_chars:
+        biditype = ex_ch['biditype']
+        if biditype in ('EN', 'ET'):
+            et_en_range.append(ex_ch)
+            et_found = et_found | biditype == 'ET'
+            en_found = en_found | biditype == 'EN'
+        else:
+            # the range is broken, do we have anything to set to EN ?
+            if et_found and en_found:
+                for range_ch in et_en_range:
+                    range_ch['biditype'] = 'EN'
+                    
+            et_en_range = []
+            et_found = en_found = False
+
+    # after the loop, do we have anything left for the last range (i.e:
+    # terminates in EN or ET)?
+    if et_found and en_found:
+        for range_ch in et_en_range:
+            range_ch['biditype'] = 'EN'
+
+    # W6 - Otherwise, separators and terminators change to Other Neutral.
+    #
+    # W7. Search backward from each instance of a European number until the
+    # first strong type (R, L, or sor) is found. If an L is found, then change
+    # the type of the European number to L.
+    last_strong = sor
+    for ex_ch in extended_chars:
+        biditype = ex_ch['biditype']
+
+        # W6
+        if biditype in ('ET', 'ES'):
+            ex_ch['biditype'] = 'ON'
+
+        # W7
+        if biditype == 'EN' and last_strong == 'L':
+            ex_ch['biditype'] = 'L'
+        if biditype in PARAGRAPH_LEVELS_KEYS:
+            last_strong = biditype
+
+    return sor, eor, extended_chars
+
+
 
 if __name__ == '__main__':
-    unistr = u'<H123>shalom</H123>'
-    unistr = u'''DID YOU SAY '\u202Ahe said "\u202Bcar MEANS CAR\u202C"\u202C'?'''
-    p_level = paragraph_level(unistr, bidirectional_uppercase_rtl)
+    import pprint
+    uni_str = u'<H123>shalom</H123>'
+    uni_str = u'''DID YOU SAY '\u202Ahe said "\u202Bcar MEANS CAR\u202C"\u202C'?'''
+
+    p_level = paragraph_level(uni_str, bidirectional_uppercase_rtl)
     
-    ex_chars = map_unistr(unistr, bidirectional_uppercase_rtl)
+    ex_chars = map_unistr(uni_str, bidirectional_uppercase_rtl)
     ex_chars_with_levels = explicit_embeddings_and_overrides(ex_chars, p_level)
 
-    run_levels = resolve_runlevels(ex_chars_with_levels, p_level)
+    run_levels = list(resolve_runlevels(ex_chars_with_levels, p_level))
+    pprint.pprint(run_levels)
+
+    run_levels_weak_resolved = [resolve_weak_types(*l) for l in run_levels]
+    pprint.pprint(run_levels_weak_resolved)
