@@ -265,6 +265,32 @@ def resolve_weak_types(sor, eor, extended_chars):
     return sor, eor, extended_chars
 
 
+def resolve_neutral_types(sor, eor, extended_chars):
+    """N1-N2"""
+
+    # N1 - A sequence of neutrals takes the direction of the surrounding
+    # strong text if the text on both sides has the same direction. European
+    # and Arabic numbers act as if they were R in terms of their influence
+    # on neutrals. Start-of-level-run (sor) and end-of-level-run (eor) are
+    # used at level run boundaries.
+
+
+    dummy = [{'biditype':sor}] + extended_chars + [{'biditype':eor}]
+    for i in range(1, len(dummy)-1):
+        prev_type, curr_type, next_type = dummy[i-1:i+2]
+        if prev_type in ('EN', 'AN'):
+            prev_type = 'R'
+
+        if next_type in ('EN', 'AN'):
+            next_type = 'R'
+
+        if curr_type == 'ON' and prev_type == next_type:
+            dummy[i]['biditype'] = next_type
+        else:
+            dummy[i]['biditype'] = ['L', 'R'][dummy[i]['level'] % 2]
+
+    return sor, eor, dummy[1:-1]
+
 
 if __name__ == '__main__':
     import pprint
@@ -281,3 +307,6 @@ if __name__ == '__main__':
 
     run_levels_weak_resolved = [resolve_weak_types(*l) for l in run_levels]
     pprint.pprint(run_levels_weak_resolved)
+
+    run_levels_neutral_resolved = [resolve_neutral_types(*l) for l in run_levels_weak_resolved]
+    pprint.pprint(run_levels_neutral_resolved)
