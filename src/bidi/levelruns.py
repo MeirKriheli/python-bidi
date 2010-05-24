@@ -31,14 +31,14 @@ class LevelRun(object):
         """Apply level run resolves"""
 
         steps = (
-            self.resolve_weak_w1_w2,
+            self.resolve_weak_w1_to_w3,
         )
 
         for step in steps:
             step()
 
-    def resolve_weak_w1_w2(self):
-        """Reslove weak type rules W1 and W2.
+    def resolve_weak_w1_to_w3(self):
+        """Reslove weak type rules W1 - W3.
 
         See: http://unicode.org/reports/tr9/#W1
 
@@ -63,3 +63,8 @@ class LevelRun(object):
             # update prev_strong if needed
             if bidi_type in ('R', 'L', 'AL'):
                 prev_strong = bidi_type
+
+        # W3. Change all ALs to R
+        for ex_ch in self.chars:
+            if ex_ch.bidi_type == 'AL':
+                ex_ch.bidi_type = 'R'
