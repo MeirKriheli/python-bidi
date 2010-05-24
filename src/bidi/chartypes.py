@@ -14,7 +14,7 @@ class ExChar(object):
         self.embed_level = None
         self.prev_char, self.next_char = prev_char, next_char
 
-    
+
     def get_embedding_direction(self):
         """
         The default direction of the current embedding level (for the
@@ -29,7 +29,7 @@ class ExChar(object):
             return 'R'
         else:
             return 'L'
-    
+
     embedding_direction = property(get_embedding_direction)
 
     @property
@@ -74,10 +74,23 @@ class ExCharUpperRtl(ExChar):
 class TextOrdering(object):
     """Dummy ExChar like, used for algorithm's `sor` and `eor`"""
 
-    def __init__(self, bidi_type):
+    def __init__(self, bidi_type, prev_char=None, next_char=None):
         """Set `bidi_type` to L or R"""
 
         self.bidi_type = bidi_type
+        self.next_char = next_char
+        self.prev_char = prev_char
+
+    @property
+    def ordering_type(self):
+        if self.next_char:
+            return 'sor'
+
+        if self.prev_char:
+            return 'eor'
+
+        return 'unkonown'
 
     def __repr__(self):
-        return '<%s (bidi type:%s)>' % (self.__class__.__name__, self.bidi_type)
+        return '<%s (%s, bidi type:%s)>' % \
+                (self.__class__.__name__, self.ordering_type, self.bidi_type)
