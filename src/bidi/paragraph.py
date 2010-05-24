@@ -194,6 +194,11 @@ class Paragraph(object):
         lrun = LevelRun(sor, eor, level_run_chars)
         self.level_runs.append(lrun)
 
+    def reslove_level_runs(self):
+        """Apply the resolving algorithms for each paragraph"""
+
+        for lrun in self.level_runs:
+            lrun.resolve()
 
     def get_display(self):
         """Calls the algorithm steps, and returns the formatted display"""
@@ -202,7 +207,8 @@ class Paragraph(object):
             self.set_storage_and_level,
             self.explicit_embed_and_overrides,
             self.remove_embed_and_overrides,
-            self.split_level_runs
+            self.split_level_runs,
+            self.reslove_level_runs,
         )
 
         for step in algorithm_steps:
