@@ -25,7 +25,4 @@ if __name__ == '__main__':
     p.get_display()
 
     pprint.pprint(p.storage)
-    for lrun in p.level_runs:
-        pprint.pprint(lrun)
-    print len(p.level_runs), p.level
     pprint.pprint(list(p.storage))

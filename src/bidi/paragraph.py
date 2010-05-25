@@ -43,7 +43,6 @@ class Paragraph(object):
 
         self.storage = deque()
         self.level = None
-        self.level_runs = deque()
 
         if upper_is_rtl:
             self._char_type = ExCharUpperRtl
@@ -158,7 +157,7 @@ class Paragraph(object):
                 new_storage.append(ex_ch)
         self.storage = new_storage
 
-    def split_level_runs(self):
+    def resolve_level_runs(self):
         """Split the storage to various level runs.
 
         Applies X10. See http://unicode.org/reports/tr9/#X10
@@ -181,8 +180,7 @@ class Paragraph(object):
 
             if curr_level != prev_level:
                 eor = calc_level_run(prev_level, curr_level)
-                lrun = LevelRun(sor, eor, level_run_chars)
-                self.level_runs.append(lrun)
+                LevelRun(sor, eor, level_run_chars).resolve()
 
                 sor = eor
                 level_run_chars = []
@@ -191,14 +189,8 @@ class Paragraph(object):
 
         # for the last char/runlevel
         eor = calc_level_run(curr_level, self.level)
-        lrun = LevelRun(sor, eor, level_run_chars)
-        self.level_runs.append(lrun)
+        LevelRun(sor, eor, level_run_chars).resolve()
 
-    def reslove_level_runs(self):
-        """Apply the resolving algorithms for each paragraph"""
-
-        for lrun in self.level_runs:
-            lrun.resolve()
 
     def reorder_resolved_levels(self):
         """L1 rules"""
@@ -258,8 +250,7 @@ class Paragraph(object):
             self.set_storage_and_level,
             self.explicit_embed_and_overrides,
             self.remove_embed_and_overrides,
-            self.split_level_runs,
-            self.reslove_level_runs,
+            self.resolve_level_runs,
             self.reorder_resolved_levels,
         )
 
