@@ -76,14 +76,14 @@ class LevelRun(object):
         See: http://unicode.org/reports/tr9/#W4
 
         """
+        # W4. A single European separator between two European numbers changes
+        # to a European number. A single common separator between two numbers of
+        # the same type changes to that type.
         for ex_ch in self.chars:
             bidi_type = ex_ch.bidi_type
             prev_type = ex_ch.prev_char.bidi_type
             next_type = ex_ch.next_char.bidi_type
 
-            # W4. A single European separator between two European numbers
-            # changes to a European number. A single common separator between
-            # two numbers of the same type changes to that type.
             if bidi_type == 'ES' and (prev_type == next_type == 'EN'):
                 ex_ch.bidi_type = 'EN'
 
@@ -91,15 +91,37 @@ class LevelRun(object):
                        prev_type in ('AN', 'EN'):
                 ex_ch.bidi_type = prev_type
 
-            # W5. A sequence of European terminators adjacent to European
-            # numbers changes to all European numbers.
-            if bidi_type == 'EN':
+        # W5. A sequence of European terminators adjacent to European numbers
+        # changes to all European numbers.
+        for ex_ch in self.chars:
+            if ex_ch.bidi_type == 'EN':
                 prev_ex_ch = ex_ch.prev_char
                 while prev_ex_ch and prev_ex_ch.bidi_type == 'ET':
-                    prev_ex_ch.bidi_type == 'EN'
+                    prev_ex_ch.bidi_type = 'EN'
                     prev_ex_ch = prev_ex_ch.prev_char
                 next_ex_ch = ex_ch.next_char
                 while next_ex_ch and next_ex_ch.bidi_type == 'ET':
-                    next_ex_ch.bidi_type == 'EN'
+                    next_ex_ch.bidi_type = 'EN'
                     next_ex_ch = next_ex_ch.next_char
 
+        # W6. Otherwise, separators and terminators change to Other Neutral.
+        for ex_ch in self.chars:
+            if ex_ch.bidi_type in ('ET', 'ES', 'CS'):
+                ex_ch.bidi_type = 'ON'
+
+        # W7. Search backward from each instance of a European number until the
+        # first strong type (R, L, or sor) is found. If an L is found, then
+        # change the type of the European number to L.
+        for ex_ch in self.chars:
+            if ex_ch.bidi_type == 'EN':
+                prev_strong = self.sor.bidi_type
+
+                prev_ex_ch = ex_ch.prev_char
+                while prev_ex_ch:
+                    if prev_ex_ch.bidi_type in ('L', 'R'):
+                        prev_strong = prev_ex_ch.bidi_type
+                        break
+                    prev_ex_ch = prev_ex_ch.prev_char
+
+                if prev_strong == 'L':
+                    ex_ch.bidi_type = 'L'
