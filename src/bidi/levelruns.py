@@ -34,6 +34,7 @@ class LevelRun(object):
             self.resolve_weak_w1_to_w3,
             self.resolve_weak_w4_to_w7,
             self.resolve_neutral,
+            self.resolve_implicit_levels,
         )
 
         for step in steps:
@@ -159,4 +160,28 @@ class LevelRun(object):
                 # level, and R if the level is odd.
                 else:
                     ex_ch.bidi_type = ex_ch.embedding_direction
+
+    def resolve_implicit_levels(self):
+        """Resolving implicit levels (I1, I2)
+
+        See: http://unicode.org/reports/tr9/#Resolving_Implicit_Levels
+
+        """
+        for ex_ch in self.chars:
+            # only those types are allowed at this stage
+            assert ex_ch.bidi_type in ('L', 'R', 'EN', 'AN')
+
+            if ex_ch.embedding_direction == 'L':
+                # I1. For all characters with an even (left-to-right) embedding
+                # direction, those of type R go up one level and those of type
+                # AN or EN go up two levels.
+                if ex_ch.bidi_type == 'R':
+                    ex_ch.embed_level += 1
+                elif ex_ch.bidi_type != 'L':
+                    ex_ch.embed_level += 2
+            else:
+                # I2. For all characters with an odd (right-to-left) embedding
+                # direction, those of type L, EN or AN  go up one level.
+                if ex_ch.bidi_type != 'R':
+                    ex_ch.embed_level += 1
 
