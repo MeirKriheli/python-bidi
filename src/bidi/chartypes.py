@@ -9,6 +9,9 @@ class ExChar(object):
 
         self.uni_char = unicode_char
         self.bidi_type = unicodedata.bidirectional(unicode_char)
+        # store original type for use later on on L1-L4 rules
+        # as bidi_type will be overwritten by resolving rules
+        self.orig_bidi_type = self.bidi_type
 
         # Those will be filled later on by the algorithm
         # prev and next are added to negate the need for messing
@@ -70,7 +73,7 @@ class ExCharUpperRtl(ExChar):
         super(ExCharUpperRtl, self).__init__(unicode_char, prev_char, next_char)
 
         if unicode_char.isupper():
-            self.bidi_type = 'R'
+            self.orig_bidi_type = self.bidi_type = 'R'
 
 class TextOrdering(object):
     """Dummy ExChar like, used for algorithm's `sor` and `eor`"""
