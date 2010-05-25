@@ -32,6 +32,7 @@ class LevelRun(object):
 
         steps = (
             self.resolve_weak_w1_to_w3,
+            self.resolve_weak_w4_to_w7,
         )
 
         for step in steps:
@@ -68,3 +69,37 @@ class LevelRun(object):
         for ex_ch in self.chars:
             if ex_ch.bidi_type == 'AL':
                 ex_ch.bidi_type = 'R'
+
+    def resolve_weak_w4_to_w7(self):
+        """Reslove weak type rules W4 - W7.
+
+        See: http://unicode.org/reports/tr9/#W4
+
+        """
+        for ex_ch in self.chars:
+            bidi_type = ex_ch.bidi_type
+            prev_type = ex_ch.prev_char.bidi_type
+            next_type = ex_ch.next_char.bidi_type
+
+            # W4. A single European separator between two European numbers
+            # changes to a European number. A single common separator between
+            # two numbers of the same type changes to that type.
+            if bidi_type == 'ES' and (prev_type == next_type == 'EN'):
+                ex_ch.bidi_type = 'EN'
+
+            if bidi_type == 'CS' and prev_type == next_type and \
+                       prev_type in ('AN', 'EN'):
+                ex_ch.bidi_type = prev_type
+
+            # W5. A sequence of European terminators adjacent to European
+            # numbers changes to all European numbers.
+            if bidi_type == 'EN':
+                prev_ex_ch = ex_ch.prev_char
+                while prev_ex_ch and prev_ex_ch.bidi_type == 'ET':
+                    prev_ex_ch.bidi_type == 'EN'
+                    prev_ex_ch = prev_ex_ch.prev_char
+                next_ex_ch = ex_ch.next_char
+                while next_ex_ch and next_ex_ch.bidi_type == 'ET':
+                    next_ex_ch.bidi_type == 'EN'
+                    next_ex_ch = next_ex_ch.next_char
+
