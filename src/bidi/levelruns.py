@@ -33,6 +33,7 @@ class LevelRun(object):
         steps = (
             self.resolve_weak_w1_to_w3,
             self.resolve_weak_w4_to_w7,
+            self.resolve_neutral,
         )
 
         for step in steps:
@@ -125,3 +126,34 @@ class LevelRun(object):
 
                 if prev_strong == 'L':
                     ex_ch.bidi_type = 'L'
+
+    def resolve_neutral(self):
+        """Resolving neutral types. Implements N1 and N2
+
+        See: http://unicode.org/reports/tr9/#Resolving_Neutral_Types
+
+        """
+
+        _get_influence_type = lambda x: (x, 'R')[x in ('AN', 'EN')]
+
+        for ex_ch in self.chars:
+            if ex_ch.bidi_type in ('B', 'S', 'WS', 'ON'):
+                # N1. A sequence of neutrals takes the direction of the
+                # surrounding strong text if the text on both sides has the same
+                # direction. European and Arabic numbers act as if they were R
+                # in terms of their influence on neutrals. Start-of-level-run
+                # (sor) and end-of-level-run (eor) are used at level run
+                # boundaries.
+                prev_bidi_type = _get_influence_type(ex_ch.prev_char.bidi_type)
+                next_bidi_type = _get_influence_type(ex_ch.next_char.bidi_type)
+
+                if prev_bidi_type == next_bidi_type:
+                    ex_ch.bidi_type = prev_bidi_type
+
+                # N2. Any remaining neutrals take the embedding direction. The
+                # embedding direction for the given neutral character is derived
+                # from its embedding level: L if the character is set to an even
+                # level, and R if the level is odd.
+                else:
+                    ex_ch.bidi_type = ex_ch.embedding_direction
+
