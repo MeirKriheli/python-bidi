@@ -87,6 +87,10 @@ class TextOrdering(object):
 
     @property
     def ordering_type(self):
+        """Return the type of TextOrdering. One of `"sor"`, `"eor"`,
+        `"unkonown"`.
+
+        """
         if self.next_char:
             return 'sor'
 
