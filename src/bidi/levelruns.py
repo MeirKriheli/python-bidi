@@ -145,6 +145,7 @@ class LevelRun(object):
                 # (sor) and end-of-level-run (eor) are used at level run
                 # boundaries.
                 prev_bidi_type = _get_influence_type(ex_ch.prev_char.bidi_type)
+                if prev_bidi_type in ('AN', 'EN'): prev_bidi_type = 'R'
                 next_bidi_type = _get_influence_type(ex_ch.next_char.bidi_type)
 
                 if prev_bidi_type == next_bidi_type:
