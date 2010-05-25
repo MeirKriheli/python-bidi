@@ -23,9 +23,9 @@ X9_REMOVED = X2_X5_MAPPINGS.keys() + ['BN', 'PDF']
 
 class Paragraph(object):
     """The entry point for the bidirecional algorithm.
-    
+
     Implement X1-X10 including spliting to run levels.
-    
+
     """
 
     def __init__(self, unicode_or_str, encoding='utf-8', upper_is_rtl=False):
@@ -107,7 +107,7 @@ class Paragraph(object):
 
                 elif embedding_level == EXPLICIT_LEVEL_LIMIT -2:
                     # The new level is invalid, but a valid level can still be
-                    # achieved if this level is 60 and we encounter an RLE or 
+                    # achieved if this level is 60 and we encounter an RLE or
                     # RLO further on.  So record that we 'almost' overflowed.
                     almost_overflow_counter += 1
 
@@ -200,6 +200,57 @@ class Paragraph(object):
         for lrun in self.level_runs:
             lrun.resolve()
 
+    def reorder_resolved_levels(self):
+        """L1 rules"""
+
+        linebreaks = deque()
+
+        # Fix next/prev links here on the fly as they were changed during
+        # level run resolves. Those links will be used later on.
+        self.storage[-1].next_char = None
+        prev_char = None
+
+        for ex_ch in self.storage:
+            # Update prev/next if needed as they were changed during level run
+            # resolves.
+            if ex_ch.prev_char != prev_char:
+                ex_ch.prev_char = prev_char
+            if prev_char and prev_char.next_char != ex_ch:
+                prev_char.next_char = ex_ch
+
+
+            if ex_ch.orig_bidi_type in ('B', 'S'):
+                # L1. On each line, reset the embedding level of the following
+                # characters to the paragraph embedding level:
+                #
+                # 1. Segment separators,
+                # 2. Paragraph separators,
+                ex_ch.embed_level = self.level
+
+                # 3. Any sequence of whitespace characters preceding a segment
+                # separator or paragraph separator
+                prev_ws = prev_char
+                while prev_ws and prev_ws.orig_bidi_type in ('BN', 'WS'):
+                    prev_ws.embed_level = self.level
+                    prev_ws = prev_ws.prev_char
+
+            prev_char = ex_ch
+
+            # store linebreaks for use in L1 clause 4
+            if ex_ch.orig_bidi_type == 'B':
+                linebreaks.append(ex_ch)
+
+
+        for ex_ch in linebreaks:
+            # 4. Any sequence of white space characters at the end of the line.
+            prev_ws = ex_ch.prev_char
+
+            while prev_ws and prev_ws in ('BN', 'WS'):
+                prev_ws.embed_level = self.level
+                prev_ws = prev_ws.prev_char
+
+
+
     def get_display(self):
         """Calls the algorithm steps, and returns the formatted display"""
 
@@ -209,6 +260,7 @@ class Paragraph(object):
             self.remove_embed_and_overrides,
             self.split_level_runs,
             self.reslove_level_runs,
+            self.reorder_resolved_levels,
         )
 
         for step in algorithm_steps:
