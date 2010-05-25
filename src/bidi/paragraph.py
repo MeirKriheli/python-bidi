@@ -2,7 +2,7 @@
 
 from collections import deque
 from chartypes import ExChar, ExCharUpperRtl
-from levelruns import LevelRun
+from runs import LevelRun
 
 PARAGRAPH_LEVELS = { 'L':0, 'AL':1, 'R': 1 }
 EXPLICIT_LEVEL_LIMIT = 62
@@ -219,10 +219,9 @@ class Paragraph(object):
                 prev_char.next_char = ex_ch
 
 
+            # L1. On each line, reset the embedding level of the following
+            # characters to the paragraph embedding level:
             if ex_ch.orig_bidi_type in ('B', 'S'):
-                # L1. On each line, reset the embedding level of the following
-                # characters to the paragraph embedding level:
-                #
                 # 1. Segment separators,
                 # 2. Paragraph separators,
                 ex_ch.embed_level = self.level
@@ -234,11 +233,12 @@ class Paragraph(object):
                     prev_ws.embed_level = self.level
                     prev_ws = prev_ws.prev_char
 
-            prev_char = ex_ch
 
             # store linebreaks for use in L1 clause 4
             if ex_ch.orig_bidi_type == 'B':
                 linebreaks.append(ex_ch)
+
+            prev_char = ex_ch
 
 
         for ex_ch in linebreaks:
