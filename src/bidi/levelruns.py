@@ -134,8 +134,6 @@ class LevelRun(object):
 
         """
 
-        _get_influence_type = lambda x: (x, 'R')[x in ('AN', 'EN')]
-
         for ex_ch in self.chars:
             if ex_ch.bidi_type in ('B', 'S', 'WS', 'ON'):
                 # N1. A sequence of neutrals takes the direction of the
@@ -144,9 +142,13 @@ class LevelRun(object):
                 # in terms of their influence on neutrals. Start-of-level-run
                 # (sor) and end-of-level-run (eor) are used at level run
                 # boundaries.
-                prev_bidi_type = _get_influence_type(ex_ch.prev_char.bidi_type)
-                if prev_bidi_type in ('AN', 'EN'): prev_bidi_type = 'R'
-                next_bidi_type = _get_influence_type(ex_ch.next_char.bidi_type)
+                prev_bidi_type = ex_ch.prev_char.bidi_type
+                if prev_bidi_type in ('AN', 'EN'):
+                    prev_bidi_type = 'R'
+
+                next_bidi_type = ex_ch.next_char.bidi_type
+                if prev_bidi_type in ('AN', 'EN'):
+                    prev_bidi_type = 'R'
 
                 if prev_bidi_type == next_bidi_type:
                     ex_ch.bidi_type = prev_bidi_type
