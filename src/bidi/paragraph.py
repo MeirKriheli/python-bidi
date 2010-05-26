@@ -1,8 +1,7 @@
 """bidirecional algorithm's paragraph"""
 
-from collections import deque
 from chartypes import ExChar, ExCharUpperRtl
-from runs import LevelRun
+from runs import LevelRun, LineRun
 
 PARAGRAPH_LEVELS = { 'L':0, 'AL':1, 'R': 1 }
 EXPLICIT_LEVEL_LIMIT = 62
@@ -41,7 +40,7 @@ class Paragraph(object):
         else:
             self.text = unicode_or_str.decode(encoding)
 
-        self.storage = deque()
+        self.storage = []
         self.level = None
 
         if upper_is_rtl:
@@ -81,7 +80,7 @@ class Paragraph(object):
 
         overflow_counter = almost_overflow_counter = 0
         directional_override = ''
-        levels = deque()
+        levels = []
 
         #X1
         embedding_level = self.level
@@ -144,7 +143,7 @@ class Paragraph(object):
         Applies X9. See http://unicode.org/reports/tr9/#X9
 
         """
-        new_storage = deque()
+        new_storage = []
 
         for ex_ch in self.storage:
             if ex_ch.bidi_type in X9_REMOVED:
@@ -158,7 +157,7 @@ class Paragraph(object):
         self.storage = new_storage
 
     def resolve_level_runs(self):
-        """Split the storage to various level runs.
+        """Split the storage to various level runs and resolves them.
 
         Applies X10. See http://unicode.org/reports/tr9/#X10
         """
@@ -195,52 +194,18 @@ class Paragraph(object):
     def reorder_resolved_levels(self):
         """L1 rules"""
 
-        linebreaks = deque()
-
-        # Fix next/prev links here on the fly as they were changed during
-        # level run resolves. Those links will be used later on.
-        self.storage[-1].next_char = None
-        prev_char = None
+        _start = _end = 0
 
         for ex_ch in self.storage:
-            # Update prev/next if needed as they were changed during level run
-            # resolves.
-            if ex_ch.prev_char != prev_char:
-                ex_ch.prev_char = prev_char
-            if prev_char and prev_char.next_char != ex_ch:
-                prev_char.next_char = ex_ch
-
-
-            # L1. On each line, reset the embedding level of the following
-            # characters to the paragraph embedding level:
-            if ex_ch.orig_bidi_type in ('B', 'S'):
-                # 1. Segment separators,
-                # 2. Paragraph separators,
-                ex_ch.embed_level = self.level
-
-                # 3. Any sequence of whitespace characters preceding a segment
-                # separator or paragraph separator
-                prev_ws = prev_char
-                while prev_ws and prev_ws.orig_bidi_type in ('BN', 'WS'):
-                    prev_ws.embed_level = self.level
-                    prev_ws = prev_ws.prev_char
-
-
-            # store linebreaks for use in L1 clause 4
+            _end += 1
             if ex_ch.orig_bidi_type == 'B':
-                linebreaks.append(ex_ch)
+                self.storage[_start:_end] = \
+                    LineRun(self.storage[_start:_end], self.level).reorder()
+                _start = _end
 
-            prev_char = ex_ch
-
-
-        for ex_ch in linebreaks:
-            # 4. Any sequence of white space characters at the end of the line.
-            prev_ws = ex_ch.prev_char
-
-            while prev_ws and prev_ws in ('BN', 'WS'):
-                prev_ws.embed_level = self.level
-                prev_ws = prev_ws.prev_char
-
+        if _start != _end:
+            self.storage[_start:_end] = \
+                LineRun(self.storage[_start:_end], self.level).reorder()
 
 
     def get_display(self):
