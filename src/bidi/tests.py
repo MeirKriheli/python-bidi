@@ -15,12 +15,12 @@ class TestBidiAlgorithm(unittest.TestCase):
 
     def test_paragraph_level(self):
         '''Test P2 and P3 implemntation'''
-        
+
         self.assertEqual(paragraph_level(u'car is THE CAR in arabic'), 0)
 
         self.assertEqual(paragraph_level(u'<H123>shalom</H123>',
                                          bidirectional_uppercase_rtl), 1)
-        
+
         self.assertEqual(paragraph_level(u'123 \u05e9\u05dc\u05d5\u05dd'), 1)
 
     def test_with_upper_is_rtl(self):
@@ -67,6 +67,9 @@ class TestBidiAlgorithm(unittest.TestCase):
 
         self.assertEqual(do_bidi(u'-2 CELSIUS IS COLD', True),
                     u'DLOC SI SUISLEC -2')
+
+        self.assertEqual(do_bidi(u'''DID YOU SAY '\u202Ahe said "\u202Bcar MEANS CAR\u202C"\u202C'?''', True),
+                         u"""?‘he said “RAC SNAEM car”’ YAS UOY DID""")
 
 if __name__ == '__main__':
     unittest.main()
