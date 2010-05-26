@@ -6,7 +6,7 @@ def read(fname):
 
 setup(
     name = "python-bidi",
-    version = "0.1",
+    version = "0.3",
     url = 'http://github.com/mksoft/python-bidi',
     license = 'LGPL',
     description = "BIDI related functions",
