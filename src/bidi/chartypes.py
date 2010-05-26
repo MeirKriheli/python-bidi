@@ -1,5 +1,6 @@
 """Varoius char types for the algorithm implementation"""
 import unicodedata
+from mirror import MIRRORED
 
 class ExChar(object):
     """Extended char for unicode bidirectional algorithm"""
@@ -18,6 +19,8 @@ class ExChar(object):
         # with indexes and range(1, len(chars)-1 ) and such
         self.embed_level = None
         self.prev_char, self.next_char = prev_char, next_char
+
+        self.mirrored = unicodedata.mirrored(self.uni_char)
 
     def get_embedding_direction(self):
         """
@@ -60,6 +63,16 @@ class ExChar(object):
                                                      self.embed_level)
     def __unicode__(self):
         return self.uni_char
+
+    @property
+    def mirrored_char(self):
+        """ Return the mirrored char if found, otherwise return the char
+        itself.
+
+        """
+        if self.mirrored:
+            return MIRRORED.get(self.uni_char, self.uni_char)
+
 
 class ExCharUpperRtl(ExChar):
     """An extended char which treats upper case chars as a strong 'R'

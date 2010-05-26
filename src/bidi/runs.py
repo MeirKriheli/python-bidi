@@ -257,9 +257,27 @@ class LineRun(object):
                 self.chars[_start:+_end+1] = \
                         reversed(self.chars[_start:+_end+1])
 
-    def reorder(self):
-        """L1 and L2"""
+    def apply_mirroring(self):
+        """Applies L4: mirroring
 
+        See: http://unicode.org/reports/tr9/#L4
+
+        """
+        # L4. A character is depicted by a mirrored glyph if and only if (a) the
+        # resolved directionality of that character is R, and (b) the
+        # Bidi_Mirrored property value of that character is true.
+        for ex_ch in self.chars:
+            if ex_ch.mirrored and ex_ch.embedding_direction == 'R':
+                ex_ch.uni_char = ex_ch.mirrored_char
+
+
+    def reorder(self):
+        """L1, L2, L4
+
+        See: http://unicode.org/reports/tr9/#L1
+
+        """
         self.reset_separators_and_whitespace()
         self.reverse_contiguous_sequence()
+        self.apply_mirroring()
         return self.chars
