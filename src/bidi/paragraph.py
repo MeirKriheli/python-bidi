@@ -37,8 +37,10 @@ class Paragraph(object):
 
         if isinstance(unicode_or_str, unicode):
             self.text = unicode_or_str
+            self.encode_to = None
         else:
             self.text = unicode_or_str.decode(encoding)
+            self.encode_to = encoding
 
         self.storage = []
         self.level = None
@@ -223,5 +225,10 @@ class Paragraph(object):
             step()
 
         # and now return the result
-        return u''.join( [unicode(c) for c in self.storage] )
+        result = u''.join( [unicode(c) for c in self.storage] )
 
+        # was decoded ?
+        if self.encode_to:
+            return result.encode(self.encode_to)
+        else:
+            return result
