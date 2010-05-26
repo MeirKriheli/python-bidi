@@ -3,6 +3,8 @@
 from collections import deque
 from chartypes import TextOrdering
 
+EXPLICIT_LEVEL_LIMIT = 62
+
 class LevelRun(object):
     """Implement the level run of the alogrithm, prepending `sor` and `eor`
     to the list and setting ExChar's next and previous chars"""
@@ -185,3 +187,79 @@ class LevelRun(object):
                 if ex_ch.bidi_type != 'R':
                     ex_ch.embed_level += 1
 
+class LineRun(object):
+    """Implement reordering of resolved levels lines (L1, L2)"""
+
+    def __init__(self, extended_chars, paragraph_embed_level):
+        """Extended chars for each line and paragraph embedding level"""
+
+        self.chars = extended_chars
+        self.highest_level = 0
+        self.lowest_odd_level = EXPLICIT_LEVEL_LIMIT
+        self.paragraph_embed_level = paragraph_embed_level
+
+    def reset_separators_and_whitespace(self):
+        """Applies L1 and calculates highest level and loweset odd level on the
+        fly.
+
+        """
+        should_reset = True
+        for i in range(len(self.chars)-1, -1, -1):
+            # L1. On each line, reset the embedding level of the following
+            # characters to the paragraph embedding level:
+            if self.chars[i].orig_bidi_type in ('B', 'S'):
+                # 1. Segment separators,
+                # 2. Paragraph separators,
+                self.chars[i].embed_level = self.paragraph_embed_level
+                should_reset = True
+            elif should_reset and self.chars[i].orig_bidi_type in ('BN', 'WS'):
+                # 3. Any sequence of whitespace characters preceding a segment
+                # separator or paragraph separator
+                # 4. Any sequence of white space characters at the end of the
+                # line.
+                self.chars[i].embed_level = self.paragraph_embed_level
+            else:
+                should_reset = False
+
+            # calc the levels
+            char_level = self.chars[i].embed_level
+            if char_level > self.highest_level:
+                self.highest_level = self.chars[i].embed_level
+
+            if char_level % 2 and char_level < self.lowest_odd_level:
+                self.lowest_odd_level = char_level
+
+    def reverse_contiguous_sequence(self):
+        """L2. From the highest level found in the text to the lowest odd level on
+        each line, including intermediate levels not actually present in the
+        text, reverse any contiguous sequence of characters that are at that
+        level or higher.
+
+        """
+        for level in range(self.highest_level, self.lowest_odd_level-1, -1):
+            _start = _end = None
+            _pos = 0
+            for ex_ch in self.chars:
+                if ex_ch.embed_level >= level:
+                    if _start is None:
+                        _start = _pos
+                    else:
+                        _end = _pos
+                else:
+                    if _end:
+                        self.chars[_start:+_end+1] = \
+                                reversed(self.chars[_start:+_end+1])
+                        _start = _end = None
+                _pos += 1
+
+            # anything remaining ?
+            if _start is not None:
+                self.chars[_start:+_end+1] = \
+                        reversed(self.chars[_start:+_end+1])
+
+    def reorder(self):
+        """L1 and L2"""
+
+        self.reset_separators_and_whitespace()
+        self.reverse_contiguous_sequence()
+        return self.chars
