@@ -130,7 +130,7 @@ class Paragraph(object):
 
                 # X8
                 elif bidi_type == 'B':
-                    levels.clear()
+                    levels = []
                     overflow_counter = almost_overflow_counter = 0
                     embedding_level = ex_ch.embed_level =  self.level
                     directional_override = ''
@@ -221,3 +221,7 @@ class Paragraph(object):
 
         for step in algorithm_steps:
             step()
+
+        # and now return the result
+        return u''.join( [unicode(c) for c in self.storage] )
+
