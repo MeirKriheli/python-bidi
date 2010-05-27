@@ -21,6 +21,10 @@ setup(
 
     install_requires = ['setuptools'],
 
+    entry_points = {
+        'console_scripts': 'pybidi = bidi:main'
+    },
+
     classifiers = [
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',

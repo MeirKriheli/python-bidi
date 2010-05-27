@@ -37,31 +37,29 @@ def get_display(unicode_or_str, encoding='utf-8', upper_is_rtl=False):
     return Paragraph(unicode_or_str, encoding, upper_is_rtl).get_display()
 
 def main():
+    """Will be used to create the console script"""
 
-    if len(sys.argv) == 2:
-        print do_bidi(unicode(sys.argv[1], 'utf-8'), False)
-        sys.exit(0)
+    import optparse
+    import sys
 
-    if len(sys.argv) == 3 and sys.argv[2] == '--capsrtl':
-        print do_bidi(unicode(sys.argv[1], 'utf-8'), True)
-        sys.exit(0)
+    parser = optparse.OptionParser()
 
-    if len(sys.argv) == 3 and sys.argv[2] == '--debug':
-        debug_string(unicode(sys.argv[1], 'utf-8'), False)
-        sys.exit(0)
+    parser.add_option('-e', '--encoding',
+                      dest='encoding',
+                      default='utf-8',
+                      type='string',
+                      help='Text encoding (default: utf-8)')
 
-    if len(sys.argv) == 4 and (sys.argv[2] == '--debug' or sys.argv[3] == '--debug') \
-            and (sys.argv[2] == '--capsrtl' or sys.argv[3] == '--capsrtl'):
-        debug_string(unicode(sys.argv[1], 'utf-8'), True)
-        sys.exit(0)
+    parser.add_option('-u', '--upper-is-rtl',
+                      dest='upper_is_rtl',
+                      default=False,
+                      action='store_true',
+                      help="treat upper case chars as strong 'R' "
+                        'for debugging (default: False).')
+    options, rest = parser.parse_args()
 
-    print
-    print
-    print 'usage: pybidi.py "string" [--caprtl] [--debug]'
-    print 'caprtl - Caps Latin chars are rtl (testing)'
-    print 'debug - Show algorithm steps'
-
-    sys.exit(1)
-
-if __name__ == "__main__":
-    main()
+    if rest:
+        sys.stdout.write(get_display(rest[0], options.encoding, options.upper_is_rtl))
+    else:
+        for line in sys.stdin:
+            sys.stdout.write(get_display(line, options.encoding, options.upper_is_rtl))
