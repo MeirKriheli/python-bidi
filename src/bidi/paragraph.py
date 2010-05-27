@@ -205,8 +205,11 @@ class Paragraph(object):
         bidi_types = []
 
         for ex_ch in self.storage:
-            chars.append(ex_ch.uni_char.center(3))
-            levels.append(str(ex_ch.embed_level).center(3))
+            if ex_ch.uni_char == u'\n':
+                chars.append('CR')
+            else:
+                chars.append(ex_ch.uni_char.center(3))
+            levels.append(str(ex_ch.embed_level)[:3].center(3))
             bidi_types.append(ex_ch.bidi_type.center(3))
 
         print '|'.join(chars)
@@ -215,18 +218,22 @@ class Paragraph(object):
 
 
     def reorder_resolved_levels(self):
-        """L1 rules"""
+        """L rules"""
 
         _start = _end = 0
 
         for ex_ch in self.storage:
             _end += 1
             if ex_ch.orig_bidi_type == 'B':
+                if self._trace:
+                    print "Reordering line %d %d" % (_start, _end)
                 self.storage[_start:_end] = \
                     LineRun(self.storage[_start:_end], self.level).reorder()
                 _start = _end
 
         if _start != _end:
+            if self._trace:
+                print "Reordering line %d %d" % (_start, _end)
             self.storage[_start:_end] = \
                 LineRun(self.storage[_start:_end], self.level).reorder()
 

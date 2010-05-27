@@ -240,9 +240,9 @@ class LineRun(object):
             _start = _end = None
             _pos = 0
             for ex_ch in self.chars:
-                if ex_ch.embed_level >= level:
+                if ex_ch.embed_level >= level and ex_ch.orig_bidi_type != 'B':
                     if _start is None:
-                        _start = _pos
+                        _start = _end = _pos
                     else:
                         _end = _pos
                 else:
@@ -254,12 +254,8 @@ class LineRun(object):
 
             # anything remaining ?
             if _start is not None:
-                if _end is None:
-                    self.chars[_start:-1] = \
-                        reversed(self.chars[_start:-1])
-                else:
-                    self.chars[_start:+_end+1] = \
-                        reversed(self.chars[_start:+_end+1])
+                self.chars[_start:+_end+1] = \
+                    reversed(self.chars[_start:+_end+1])
 
     def apply_mirroring(self):
         """Applies L4: mirroring
