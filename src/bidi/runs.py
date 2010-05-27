@@ -254,7 +254,11 @@ class LineRun(object):
 
             # anything remaining ?
             if _start is not None:
-                self.chars[_start:+_end+1] = \
+                if _end is None:
+                    self.chars[_start:-1] = \
+                        reversed(self.chars[_start:-1])
+                else:
+                    self.chars[_start:+_end+1] = \
                         reversed(self.chars[_start:+_end+1])
 
     def apply_mirroring(self):
