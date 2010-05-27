@@ -1,75 +1,88 @@
 import unittest
 import unicodedata
-from bidi import do_bidi
-from bidi.algorithm import bidirectional_uppercase_rtl, paragraph_level
+from bidi.paragraph import Paragraph
+from bidi import get_display
 
 class TestBidiAlgorithm(unittest.TestCase):
-
-    def testbidirectional_uppercase_rtl(self):
-        '''Tests treating upper case as RTL type'''
-        self.assertEqual(bidirectional_uppercase_rtl(u'A'), 'R')
-        self.assertEqual(bidirectional_uppercase_rtl(u'a'), 'L')
-
-        alef = unicodedata.lookup('HEBREW LETTER ALEF')
-        self.assertEqual(bidirectional_uppercase_rtl(alef), 'R')
 
     def test_paragraph_level(self):
         '''Test P2 and P3 implemntation'''
 
-        self.assertEqual(paragraph_level(u'car is THE CAR in arabic'), 0)
+        p = Paragraph(u'car is THE CAR in arabic', upper_is_rtl=True)
+        p.set_storage_and_level()
 
-        self.assertEqual(paragraph_level(u'<H123>shalom</H123>',
-                                         bidirectional_uppercase_rtl), 1)
+        self.assertEqual(p.level, 0)
 
-        self.assertEqual(paragraph_level(u'123 \u05e9\u05dc\u05d5\u05dd'), 1)
+        p = Paragraph(u'<H123>shalom</H123>', upper_is_rtl=True)
+        p.set_storage_and_level()
+        self.assertEqual(p.level, 1)
+
+        p = Paragraph(u'123 \u05e9\u05dc\u05d5\u05dd')
+        p.set_storage_and_level()
+        self.assertEqual(p.level, 1)
 
     def test_with_upper_is_rtl(self):
         '''Tests from http://imagic.weizmann.ac.il/~dov/freesw/FriBidi/ '''
 
-        self.assertEqual(do_bidi(u'car is THE CAR in arabic', True),
-                    u'car is RAC EHT in arabic')
+        storage = u'car is THE CAR in arabic'
+        display = u'car is RAC EHT in arabic'
+        self.assertEqual(get_display(storage, upper_is_rtl=True), display)
 
-        self.assertEqual(do_bidi(u'CAR IS the car IN ENGLISH', True),
-                    u'HSILGNE NI the car SI RAC')
+        storage = u'CAR IS the car IN ENGLISH'
+        display = u'HSILGNE NI the car SI RAC'
+        self.assertEqual(get_display(storage, upper_is_rtl=True), display)
 
-        self.assertEqual(do_bidi(u'he said "IT IS 123, 456, OK"', True),
-                    u'he said "KO ,456 ,123 SI TI"')
+        storage = u'he said "IT IS 123, 456, OK"'
+        display = u'he said "KO ,456 ,123 SI TI"'
+        self.assertEqual(get_display(storage, upper_is_rtl=True), display)
 
-        self.assertEqual(do_bidi(u'he said "IT IS (123, 456), OK"', True),
-                    u'he said "KO ,(456 ,123) SI TI"')
+        storage = u'he said "IT IS (123, 456), OK"'
+        display = u'he said "KO ,(456 ,123) SI TI"'
+        self.assertEqual(get_display(storage, upper_is_rtl=True), display)
 
-        self.assertEqual(do_bidi(u'he said "IT IS 123,456, OK"', True),
-                    u'he said "KO ,123,456 SI TI"')
+        storage = u'he said "IT IS 123,456, OK"'
+        display = u'he said "KO ,123,456 SI TI"'
+        self.assertEqual(get_display(storage, upper_is_rtl=True), display)
 
-        self.assertEqual(do_bidi(u'he said "IT IS (123,456), OK"', True),
-                    u'he said "KO ,(123,456) SI TI"')
+        storage = u'he said "IT IS (123,456), OK"'
+        display = u'he said "KO ,(123,456) SI TI"'
+        self.assertEqual(get_display(storage, upper_is_rtl=True), display)
 
-        self.assertEqual(do_bidi(u'HE SAID "it is 123, 456, ok"', True),
-                    u'"it is 123, 456, ok" DIAS EH')
+        storage = u'HE SAID "it is 123, 456, ok"'
+        display = u'"it is 123, 456, ok" DIAS EH'
+        self.assertEqual(get_display(storage, upper_is_rtl=True), display)
 
-        self.assertEqual(do_bidi(u'<H123>shalom</H123>',True),
-                    u'<123H/>shalom<123H>')
+        storage = u'<H123>shalom</H123>',
+        display = u'<123H/>shalom<123H>'
+        self.assertEqual(get_display(storage, upper_is_rtl=True), display)
 
-        self.assertEqual(do_bidi(u'<h123>SAALAM</h123>', True),
-                    u'<h123>MALAAS</h123>')
+        storage = u'<h123>SAALAM</h123>'
+        display = u'<h123>MALAAS</h123>'
+        self.assertEqual(get_display(storage, upper_is_rtl=True), display)
 
-        self.assertEqual(do_bidi(u'HE SAID "it is a car!" AND RAN', True),
-                    u'NAR DNA "!it is a car" DIAS EH')
+        storage = u'HE SAID "it is a car!" AND RAN'
+        display = u'NAR DNA "!it is a car" DIAS EH'
+        self.assertEqual(get_display(storage, upper_is_rtl=True), display)
 
-        self.assertEqual(do_bidi(u'HE SAID "it is a car!x" AND RAN', True),
-                    u'NAR DNA "it is a car!x" DIAS EH')
+        storage = u'HE SAID "it is a car!x" AND RAN'
+        display = u'NAR DNA "it is a car!x" DIAS EH'
+        self.assertEqual(get_display(storage, upper_is_rtl=True), display)
 
-        self.assertEqual(do_bidi(u'SOLVE 1*5 1-5 1/5 1+5', True),
-                    u'1+5 1/5 1-5 5*1 EVLOS')
+        storage = u'SOLVE 1*5 1-5 1/5 1+5'
+        display = u'1+5 1/5 1-5 5*1 EVLOS'
+        self.assertEqual(get_display(storage, upper_is_rtl=True), display)
 
-        self.assertEqual(do_bidi(u'THE RANGE IS 2.5..5', True),
-                    u'5..2.5 SI EGNAR EHT')
+        storage = u'THE RANGE IS 2.5..5'
+        display = u'5..2.5 SI EGNAR EHT'
+        self.assertEqual(get_display(storage, upper_is_rtl=True), display)
 
-        self.assertEqual(do_bidi(u'-2 CELSIUS IS COLD', True),
-                    u'DLOC SI SUISLEC -2')
+        storage = u'-2 CELSIUS IS COLD'
+        display = u'DLOC SI SUISLEC -2'
+        self.assertEqual(get_display(storage, upper_is_rtl=True), display)
 
-        self.assertEqual(do_bidi(u'''DID YOU SAY '\u202Ahe said "\u202Bcar MEANS CAR\u202C"\u202C'?''', True),
-                         u"""?‘he said “RAC SNAEM car”’ YAS UOY DID""")
+        storage = u'''DID YOU SAY '\u202Ahe said "\u202Bcar MEANS CAR\u202C"\u202C'?'''
+        display = u"""?‘he said “RAC SNAEM car”’ YAS UOY DID"""
+        self.assertEqual(get_display(storage, upper_is_rtl=True), display)
 
 if __name__ == '__main__':
     unittest.main()
