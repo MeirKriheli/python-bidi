@@ -27,14 +27,16 @@ class Paragraph(object):
 
     """
 
-    def __init__(self, unicode_or_str, encoding='utf-8', upper_is_rtl=False):
+    def __init__(self, unicode_or_str, encoding='utf-8', upper_is_rtl=False, _trace=False):
         """Accepts unicode or string. In case it's a string, `encoding`
         is needed as it works on unicode ones (default:"utf-8").
 
         Set `upper_is_rtl` to True to treat upper case chars as strong 'R'
         for debugging (default: False).
-        """
 
+        Set `_trace` to True to display the steps taken with the algorithm"
+
+        """
         if isinstance(unicode_or_str, unicode):
             self.text = unicode_or_str
             self.encode_to = None
@@ -49,6 +51,9 @@ class Paragraph(object):
             self._char_type = ExCharUpperRtl
         else:
             self._char_type = ExChar
+
+        self._trace = _trace
+        self.set_storage_and_level()
 
     def set_storage_and_level(self):
         """Maps the paragraph text to extended chars and sets the paragraph
@@ -192,6 +197,22 @@ class Paragraph(object):
         eor = calc_level_run(curr_level, self.level)
         LevelRun(sor, eor, level_run_chars).resolve()
 
+    def display_storage(self):
+        """A Helper function to display the storage when tracing"""
+
+        chars = []
+        levels = []
+        bidi_types = []
+
+        for ex_ch in self.storage:
+            chars.append(ex_ch.uni_char.center(3))
+            levels.append(str(ex_ch.embed_level).center(3))
+            bidi_types.append(ex_ch.bidi_type.center(3))
+
+        print '|'.join(chars)
+        print '|'.join(levels)
+        print '|'.join(bidi_types)
+
 
     def reorder_resolved_levels(self):
         """L1 rules"""
@@ -213,8 +234,10 @@ class Paragraph(object):
     def get_display(self):
         """Calls the algorithm steps, and returns the formatted display"""
 
+        if self._trace:
+            self.display_storage()
+
         algorithm_steps = (
-            self.set_storage_and_level,
             self.explicit_embed_and_overrides,
             self.remove_embed_and_overrides,
             self.resolve_level_runs,
@@ -222,7 +245,13 @@ class Paragraph(object):
         )
 
         for step in algorithm_steps:
+            if self._trace:
+                print "Calling %s" % step.__name__
+
             step()
+
+            if self._trace:
+                self.display_storage()
 
         # and now return the result
         result = u''.join( [unicode(c) for c in self.storage] )

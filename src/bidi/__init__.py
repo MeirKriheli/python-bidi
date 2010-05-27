@@ -24,17 +24,20 @@ http://www.unicode.org/unicode/reports/tr9/
 test cases from http://imagic.weizmann.ac.il/~dov/freesw/FriBidi/
 """
 
-def get_display(unicode_or_str, encoding='utf-8', upper_is_rtl=False):
+def get_display(unicode_or_str, encoding='utf-8', upper_is_rtl=False,
+                _trace=False):
     """Accepts unicode or string. In case it's a string, `encoding`
     is needed as it works on unicode ones (default:"utf-8").
 
     Set `upper_is_rtl` to True to treat upper case chars as strong 'R'
     for debugging (default: False).
 
+    Set `_trace` to True to display the steps taken with the algorithm"
+
     """
     from paragraph import Paragraph
 
-    return Paragraph(unicode_or_str, encoding, upper_is_rtl).get_display()
+    return Paragraph(unicode_or_str, encoding, upper_is_rtl, _trace).get_display()
 
 def main():
     """Will be used to create the console script"""
@@ -56,10 +59,19 @@ def main():
                       action='store_true',
                       help="treat upper case chars as strong 'R' "
                         'for debugging (default: False).')
+
+    parser.add_option('-t', '--trace',
+                      dest='trace',
+                      default=False,
+                      action='store_true',
+                      help="Display the steps taken with the algorithm")
+
     options, rest = parser.parse_args()
 
     if rest:
-        sys.stdout.write(get_display(rest[0], options.encoding, options.upper_is_rtl))
+        sys.stdout.write(get_display(rest[0], options.encoding,
+                    options.upper_is_rtl, options.trace))
     else:
         for line in sys.stdin:
-            sys.stdout.write(get_display(line, options.encoding, options.upper_is_rtl))
+            sys.stdout.write(get_display(line, options.encoding,
+                    options.upper_is_rtl, options.trace))
