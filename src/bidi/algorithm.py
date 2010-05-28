@@ -260,6 +260,54 @@ def resolve_weak_types(storage, debug=False):
             if _ch['type'] == 'AL':
                 _ch['type'] = 'R'
 
+        # W4. A single European separator between two European numbers changes
+        # to a European number. A single common separator between two numbers of
+        # the same type changes to that type.
+        for idx in range(1, len(chars) -1 ):
+            bidi_type = chars[idx]['type']
+            prev_type = chars[idx-1]['type']
+            next_type = chars[idx-1]['type']
+
+            if bidi_type == 'ES' and (prev_type == next_type == 'EN'):
+                chars[idx]['type'] = 'EN'
+
+            if bidi_type == 'CS' and prev_type == next_type and \
+                       prev_type in ('AN', 'EN'):
+                chars[idx]['type'] = prev_type
+
+
+        # W5. A sequence of European terminators adjacent to European numbers
+        # changes to all European numbers.
+        for idx in range(len(chars)):
+            if chars[idx]['type'] == 'EN':
+                for et_idx in range(idx-1, -1, -1):
+                    if chars[et_idx]['type'] == 'ET':
+                        chars[et_idx]['type'] == 'EN'
+                    else:
+                        break
+                for et_idx in range(idx+1, len(chars)):
+                    if chars[et_idx]['type'] == 'ET':
+                        chars[et_idx]['type'] == 'EN'
+                    else:
+                        break
+
+        # W6. Otherwise, separators and terminators change to Other Neutral.
+        for _ch in chars:
+            if _ch['type'] in ('ET', 'ES', 'CS'):
+                _ch['type'] = 'ON'
+
+        # W7. Search backward from each instance of a European number until the
+        # first strong type (R, L, or sor) is found. If an L is found, then
+        # change the type of the European number to L.
+        prev_strong = run['sor']
+        for _ch in chars:
+            if _ch['type'] == 'EN' and prev_strong == 'L':
+                _ch['type'] = 'L'
+
+            if _ch['type'] in ('L', 'R'):
+                prev_strong = _ch['type']
+
+
     if debug:
         debug_storage(storage)
 
