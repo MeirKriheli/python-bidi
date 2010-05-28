@@ -23,15 +23,18 @@ X2_X5_MAPPINGS = {
 X6_IGNORED = X2_X5_MAPPINGS.keys() + ['BN', 'PDF', 'B']
 X9_REMOVED = X2_X5_MAPPINGS.keys() + ['BN', 'PDF']
 
-def debug_storage(storage, base_info=False, chars=True):
+def debug_storage(storage, base_info=False, chars=True, runs=False):
     "Display debug information for the storage"
 
     caller = inspect.stack()[1][3]
     sys.stderr.write('in %s\n' % caller)
 
     if base_info:
-        sys.stderr.write(u'  base level : %d\n' % storage['base_level'])
-        sys.stderr.write(u'  base dir   : %s\n' % storage['base_dir'])
+        sys.stderr.write(u'  base level  : %d\n' % storage['base_level'])
+        sys.stderr.write(u'  base dir    : %s\n' % storage['base_dir'])
+
+    if runs:
+        sys.stderr.write(u'  runs        : %s\n' % storage['runs'])
 
     if chars:
         output = u'  Chars       : '
@@ -87,14 +90,17 @@ def get_embedding_levels(text, storage, upper_is_rtl=False, debug=False):
 
     # preset the storage's chars
     for _ch in text:
-        bidi_type = bidirectional(_ch)
+        if upper_is_rtl and _ch.isupper():
+            bidi_type = 'R'
+        else:
+            bidi_type = bidirectional(_ch)
         storage['chars'].append({'ch':_ch, 'level':base_level, 'type':bidi_type,
                                  'orig':bidi_type})
     if debug:
         debug_storage(storage, base_info=True)
 
 def explicit_embed_and_overrides(storage, debug=False):
-    """Apply X1 to X8 rules of the unicode algorithm.
+    """Apply X1 to X9 rules of the unicode algorithm.
 
     See http://unicode.org/reports/tr9/#Explicit_Levels_and_Directions
 
@@ -156,9 +162,65 @@ def explicit_embed_and_overrides(storage, debug=False):
                 embedding_level = _ch['level'] = storage['base_level']
                 directional_override = 'N'
 
-    if debug:
-        debug_storage(storage)
+    #Removes the explicit embeds and overrides of types
+    #RLE, LRE, RLO, LRO, PDF, and BN. Adjusts extended chars
+    #next and prev as well
 
+    #Applies X9. See http://unicode.org/reports/tr9/#X9
+    storage['chars'] = [_ch for _ch in storage['chars']\
+                        if _ch not in X9_REMOVED]
+
+    calc_level_runs(storage)
+
+    if debug:
+        debug_storage(storage, runs=True)
+
+def calc_level_runs(storage):
+    """Split the storage to run of char types at the same level.
+
+    Applies X10. See http://unicode.org/reports/tr9/#X10
+    """
+    #run level depends on the higher of the two levels on either side of
+    #the boundary If the higher level is odd, the type is R; otherwise,
+    #it is L
+
+    storage['runs'].clear()
+    chars = storage['chars']
+
+    #empty string ?
+    if not chars:
+        return
+
+    calc_level_run = lambda b_l, b_r: ['L', 'R'][max(b_l, b_r) % 2]
+
+    first_char = chars[0]
+
+    sor = calc_level_run(storage['base_level'], first_char['level'])
+    eor = None
+
+    run_start = run_length = 0
+
+    prev_level, prev_type = first_char['level'], first_char['type']
+
+    for _ch in chars:
+        curr_level, curr_type = _ch['level'], _ch['type']
+
+        if curr_level == prev_level and curr_type == prev_type:
+            run_length += 1
+        else:
+            eor = calc_level_run(prev_level, curr_level)
+            storage['runs'].append({'sor':sor, 'eor':eor, 'start':run_start,
+                        'length': run_length})
+            sor = eor
+            run_start += run_length
+            run_length = 1
+
+        prev_level, prev_type = curr_level, curr_type
+
+    # for the last char/runlevel
+    eor = calc_level_run(curr_level, storage['base_level'])
+    storage['runs'].append({'sor':sor, 'eor':eor, 'start':run_start,
+                'length': run_length})
 
 def get_display(unicode_or_str, encoding='utf-8', upper_is_rtl=False,
                 debug=False):
@@ -176,6 +238,7 @@ def get_display(unicode_or_str, encoding='utf-8', upper_is_rtl=False,
         'base_level': None,
         'base_dir' : None,
         'chars': [],
+        'runs' : deque(),
     }
 
     # utf-8 ? we need unicode
