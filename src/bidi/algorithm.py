@@ -34,7 +34,7 @@ def debug_storage(storage, base_info=False, chars=True, runs=False):
         sys.stderr.write(u'  base dir    : %s\n' % storage['base_dir'])
 
     if runs:
-        sys.stderr.write(u'  runs        : %s\n' % storage['runs'])
+        sys.stderr.write(u'  runs        : %s\n' % list(storage['runs']))
 
     if chars:
         output = u'  Chars       : '
@@ -210,7 +210,7 @@ def calc_level_runs(storage):
         else:
             eor = calc_level_run(prev_level, curr_level)
             storage['runs'].append({'sor':sor, 'eor':eor, 'start':run_start,
-                        'length': run_length})
+                            'type': prev_type,'length': run_length})
             sor = eor
             run_start += run_length
             run_length = 1
@@ -220,7 +220,49 @@ def calc_level_runs(storage):
     # for the last char/runlevel
     eor = calc_level_run(curr_level, storage['base_level'])
     storage['runs'].append({'sor':sor, 'eor':eor, 'start':run_start,
-                'length': run_length})
+                            'type':curr_type, 'length': run_length})
+
+def resolve_weak_types(storage, debug=False):
+    """Reslove weak type rules W1 - W3.
+
+    See: http://unicode.org/reports/tr9/#Resolving_Weak_Types
+
+    """
+
+    for run in storage['runs']:
+        prev_strong = prev_type = run['sor']
+        start, length = run['start'], run['length']
+        chars = storage['chars'][start:start+length]
+        for _ch in chars:
+            # W1. Examine each nonspacing mark (NSM) in the level run, and
+            # change the type of the NSM to the type of the previous character.
+            # If the NSM is at the start of the level run, it will get the type
+            # of sor.
+            bidi_type = _ch['type']
+
+            if bidi_type == 'NSM':
+                _ch['type']= bidi_type = prev_type
+
+            # W2. Search backward from each instance of a European number until
+            # the first strong type (R, L, AL, or sor) is found. If an AL is
+            # found, change the type of the European number to Arabic number.
+            if bidi_type == 'EN' and prev_strong == 'AL':
+                _ch['type'] = 'AN'
+
+            # update prev_strong if needed
+            if bidi_type in ('R', 'L', 'AL'):
+                prev_strong = bidi_type
+
+            prev_type = _ch['type']
+
+        # W3. Change all ALs to R
+        for _ch in chars:
+            if _ch['type'] == 'AL':
+                _ch['type'] = 'R'
+
+    if debug:
+        debug_storage(storage)
+
 
 def get_display(unicode_or_str, encoding='utf-8', upper_is_rtl=False,
                 debug=False):
@@ -249,5 +291,6 @@ def get_display(unicode_or_str, encoding='utf-8', upper_is_rtl=False,
 
     get_embedding_levels(text, storage, upper_is_rtl, debug)
     explicit_embed_and_overrides(storage, debug)
+    resolve_weak_types(storage, debug)
 
     return 'yo'
