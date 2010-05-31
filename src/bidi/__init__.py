@@ -29,6 +29,8 @@ def main():
 
     import optparse
     import sys
+    import codecs
+    import locale
     from algorithm import get_display
 
     parser = optparse.OptionParser()
@@ -53,6 +55,9 @@ def main():
                       help="Display the steps taken with the algorithm")
 
     options, rest = parser.parse_args()
+
+    # allow unicode in sys.stdout.write
+    sys.stdout = codecs.getwriter(locale.getpreferredencoding())(sys.stdout)
 
     if rest:
         sys.stdout.write(get_display(rest[0], options.encoding,
