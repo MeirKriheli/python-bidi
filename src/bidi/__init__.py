@@ -58,6 +58,8 @@ def main():
 
     # allow unicode in sys.stdout.write
     sys.stdout = codecs.getwriter(locale.getpreferredencoding())(sys.stdout)
+    sys.stderr = codecs.getwriter(locale.getpreferredencoding())(sys.stderr)
+
 
     if rest:
         sys.stdout.write(get_display(rest[0], options.encoding,
