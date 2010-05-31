@@ -309,8 +309,6 @@ def resolve_weak_types(storage, debug=False):
             if _ch['type'] in ('L', 'R'):
                 prev_strong = _ch['type']
 
-    #calc_level_runs(storage)
-
     if debug:
         debug_storage(storage, runs=True)
 
@@ -396,6 +394,37 @@ def resolve_implicit_levels(storage, debug):
     if debug:
         debug_storage(storage, runs=True)
 
+def reverse_contiguous_sequence(chars, line_start, line_end, highest_level,
+                                lowest_odd_level):
+    """L2. From the highest level found in the text to the lowest odd
+    level on each line, including intermediate levels not actually
+    present in the text, reverse any contiguous sequence of characters
+    that are at that level or higher.
+
+    """
+    for level in range(highest_level, lowest_odd_level-1, -1):
+        _start = _end = None
+
+        for run_idx in range(line_start, line_end+1):
+            run_ch = chars[run_idx]
+
+            if run_ch['level'] >= level:
+                if _start is None:
+                    _start = _end = run_idx
+                else:
+                    _end = run_idx
+            else:
+                if _end:
+                    chars[_start:+_end+1] = \
+                            reversed(chars[_start:+_end+1])
+                    _start = _end = None
+
+        # anything remaining ?
+        if _start is not None:
+            chars[_start:+_end+1] = \
+                reversed(chars[_start:+_end+1])
+
+
 def reorder_resolved_levels(storage, debug):
     """L1 and L2 rules"""
 
@@ -449,32 +478,8 @@ def reorder_resolved_levels(storage, debug):
             if _ch['orig'] == 'B':
                 line_end -= 1
 
-            # we got the line start, end, and highest/lowest, let's reorder L2.
-            # From the highest level found in the text to the lowest odd level
-            # on each line, including intermediate levels not actually present
-            # in the text, reverse any contiguous sequence of characters that
-            # are at that level or higher.
-            for level in range(highest_level, lowest_odd_level-1, -1):
-                _start = _end = None
-
-                for run_idx in range(line_start, line_end+1):
-                    run_ch = chars[run_idx]
-
-                    if run_ch['level'] >= level:
-                        if _start is None:
-                            _start = _end = run_idx
-                        else:
-                            _end = run_idx
-                    else:
-                        if _end:
-                            chars[_start:+_end+1] = \
-                                    reversed(chars[_start:+_end+1])
-                            _start = _end = None
-
-                # anything remaining ?
-                if _start is not None:
-                    chars[_start:+_end+1] = \
-                        reversed(chars[_start:+_end+1])
+            reverse_contiguous_sequence(chars, line_start, line_end,
+                                        highest_level, lowest_odd_level)
 
             # reset for next line run
             line_start = idx+1
