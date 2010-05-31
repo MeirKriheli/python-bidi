@@ -243,7 +243,7 @@ def resolve_weak_types(storage, debug=False):
             bidi_type = _ch['type']
 
             if bidi_type == 'NSM':
-                _ch['type']= bidi_type = prev_type
+                _ch['type'] = bidi_type = prev_type
 
             # W2. Search backward from each instance of a European number until
             # the first strong type (R, L, AL, or sor) is found. If an AL is
@@ -284,12 +284,12 @@ def resolve_weak_types(storage, debug=False):
             if chars[idx]['type'] == 'EN':
                 for et_idx in range(idx-1, -1, -1):
                     if chars[et_idx]['type'] == 'ET':
-                        chars[et_idx]['type'] == 'EN'
+                        chars[et_idx]['type'] = 'EN'
                     else:
                         break
                 for et_idx in range(idx+1, len(chars)):
                     if chars[et_idx]['type'] == 'ET':
-                        chars[et_idx]['type'] == 'EN'
+                        chars[et_idx]['type'] = 'EN'
                     else:
                         break
 
@@ -393,10 +393,97 @@ def resolve_implicit_levels(storage, debug):
                 if _ch['type'] != 'R':
                     _ch['level'] += 1
 
-    #calc_level_runs(storage)
+    if debug:
+        debug_storage(storage, runs=True)
+
+def reorder_resolved_levels(storage, debug):
+    """L1 and L2 rules"""
+
+    # Applies L1.
+
+    should_reset = True
+    chars = storage['chars']
+
+    for _ch in chars[::-1]:
+        # L1. On each line, reset the embedding level of the following
+        # characters to the paragraph embedding level:
+        if _ch['orig'] in ('B', 'S'):
+            # 1. Segment separators,
+            # 2. Paragraph separators,
+            _ch['level'] = storage['base_level']
+            should_reset = True
+        elif should_reset and _ch['orig'] in ('BN', 'WS'):
+            # 3. Any sequence of whitespace characters preceding a segment
+            # separator or paragraph separator
+            # 4. Any sequence of white space characters at the end of the
+            # line.
+            _ch['level'] = storage['base_level']
+        else:
+            should_reset = False
+
+
+
+    max_len = len(chars)
+
+    # L2 should be per line
+    # Calculates highest level and loweset odd level on the fly.
+
+    line_start = line_end = 0
+    highest_level = 0
+    lowest_odd_level = EXPLICIT_LEVEL_LIMIT
+
+    for idx in range(max_len):
+        _ch = chars[idx]
+
+        # calc the levels
+        char_level = _ch['level']
+        if char_level > highest_level:
+            highest_level = char_level
+
+        if char_level % 2 and char_level < lowest_odd_level:
+            lowest_odd_level = char_level
+
+        if _ch['orig'] == 'B' or idx == max_len -1:
+            line_end = idx
+            # omit line breaks
+            if _ch['orig'] == 'B':
+                line_end -= 1
+
+            # we got the line start, end, and highest/lowest, let's reorder L2.
+            # From the highest level found in the text to the lowest odd level
+            # on each line, including intermediate levels not actually present
+            # in the text, reverse any contiguous sequence of characters that
+            # are at that level or higher.
+            for level in range(highest_level, lowest_odd_level-1, -1):
+                _start = _end = None
+
+                for run_idx in range(line_start, line_end+1):
+                    run_ch = chars[run_idx]
+
+                    if run_ch['level'] >= level:
+                        if _start is None:
+                            _start = _end = run_idx
+                        else:
+                            _end = run_idx
+                    else:
+                        if _end:
+                            chars[_start:+_end+1] = \
+                                    reversed(chars[_start:+_end+1])
+                            _start = _end = None
+
+                # anything remaining ?
+                if _start is not None:
+                    chars[_start:+_end+1] = \
+                        reversed(chars[_start:+_end+1])
+
+            # reset for next line run
+            line_start = idx+1
+            highest_level = 0
+            lowest_odd_level = EXPLICIT_LEVEL_LIMIT
 
     if debug:
         debug_storage(storage, runs=True)
+
 
 def get_display(unicode_or_str, encoding='utf-8', upper_is_rtl=False,
                 debug=False):
@@ -428,5 +515,7 @@ def get_display(unicode_or_str, encoding='utf-8', upper_is_rtl=False,
     resolve_weak_types(storage, debug)
     resolve_neutral_types(storage, debug)
     resolve_implicit_levels(storage, debug)
+    reorder_resolved_levels(storage, debug)
 
-    return 'yo'
+    chars = storage['chars']
+    return u''.join([_ch['ch'] for _ch in chars])
