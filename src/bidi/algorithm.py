@@ -1,9 +1,10 @@
 "bidirectional alogrithm implementation"
 
-from unicodedata import bidirectional
+from unicodedata import bidirectional, mirrored
 import sys
 import inspect
 from collections import deque
+from mirror import MIRRORED
 
 # Some definitions
 PARAGRAPH_LEVELS = { 'L':0, 'AL':1, 'R': 1 }
@@ -450,8 +451,6 @@ def reorder_resolved_levels(storage, debug):
         else:
             should_reset = False
 
-
-
     max_len = len(chars)
 
     # L2 should be per line
@@ -487,7 +486,26 @@ def reorder_resolved_levels(storage, debug):
             lowest_odd_level = EXPLICIT_LEVEL_LIMIT
 
     if debug:
-        debug_storage(storage, runs=True)
+        debug_storage(storage)
+
+
+def apply_mirroring(storage, debug):
+    """Applies L4: mirroring
+
+    See: http://unicode.org/reports/tr9/#L4
+
+    """
+    # L4. A character is depicted by a mirrored glyph if and only if (a) the
+    # resolved directionality of that character is R, and (b) the
+    # Bidi_Mirrored property value of that character is true.
+    for _ch in storage['chars']:
+        unichar = _ch['ch']
+        if mirrored(unichar) and \
+                     _embedding_direction(_ch['level']) == 'R':
+            _ch['ch'] = MIRRORED.get(unichar, unichar)
+
+    if debug:
+        debug_storage(storage)
 
 
 def get_display(unicode_or_str, encoding='utf-8', upper_is_rtl=False,
@@ -521,6 +539,7 @@ def get_display(unicode_or_str, encoding='utf-8', upper_is_rtl=False,
     resolve_neutral_types(storage, debug)
     resolve_implicit_levels(storage, debug)
     reorder_resolved_levels(storage, debug)
+    apply_mirroring(storage, debug)
 
     chars = storage['chars']
     return u''.join([_ch['ch'] for _ch in chars])
