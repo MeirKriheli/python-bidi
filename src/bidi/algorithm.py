@@ -23,6 +23,8 @@ X2_X5_MAPPINGS = {
 X6_IGNORED = X2_X5_MAPPINGS.keys() + ['BN', 'PDF', 'B']
 X9_REMOVED = X2_X5_MAPPINGS.keys() + ['BN', 'PDF']
 
+_embedding_direction = lambda x:('L', 'R')[x % 2]
+
 def debug_storage(storage, base_info=False, chars=True, runs=False):
     "Display debug information for the storage"
 
@@ -205,7 +207,7 @@ def calc_level_runs(storage):
     for _ch in chars:
         curr_level, curr_type = _ch['level'], _ch['type']
 
-        if curr_level == prev_level and curr_type == prev_type:
+        if curr_level == prev_level:
             run_length += 1
         else:
             eor = calc_level_run(prev_level, curr_level)
@@ -307,10 +309,94 @@ def resolve_weak_types(storage, debug=False):
             if _ch['type'] in ('L', 'R'):
                 prev_strong = _ch['type']
 
+    #calc_level_runs(storage)
+
+    if debug:
+        debug_storage(storage, runs=True)
+
+def resolve_neutral_types(storage, debug):
+    """Resolving neutral types. Implements N1 and N2
+
+    See: http://unicode.org/reports/tr9/#Resolving_Neutral_Types
+
+    """
+
+    for run in storage['runs']:
+        start, length = run['start'], run['length']
+        chars = storage['chars'][start:start+length]
+        total_chars = len(chars)
+        for idx in range(total_chars):
+            _ch = chars[idx]
+            if _ch['type'] in ('B', 'S', 'WS', 'ON'):
+                # N1. A sequence of neutrals takes the direction of the
+                # surrounding strong text if the text on both sides has the same
+                # direction. European and Arabic numbers act as if they were R
+                # in terms of their influence on neutrals. Start-of-level-run
+                # (sor) and end-of-level-run (eor) are used at level run
+                # boundaries.
+                if not idx:
+                    prev_bidi_type = run['sor']
+                else:
+                    prev_bidi_type = chars[idx-1]['type']
+
+                if idx < total_chars -1:
+                    next_bidi_type = chars[idx+1]['type']
+                else:
+                    next_bidi_type = run['eor']
+
+                if prev_bidi_type in ('AN', 'EN'):
+                    prev_bidi_type = 'R'
+
+                if next_bidi_type in ('AN', 'EN'):
+                    next_bidi_type = 'R'
+
+                if prev_bidi_type == next_bidi_type:
+                    _ch['type'] = prev_bidi_type
+
+                # N2. Any remaining neutrals take the embedding direction. The
+                # embedding direction for the given neutral character is derived
+                # from its embedding level: L if the character is set to an even
+                # level, and R if the level is odd.
+                else:
+                    _ch['type'] = _embedding_direction(_ch['level'])
+
+    #calc_level_runs(storage)
 
     if debug:
         debug_storage(storage)
 
+def resolve_implicit_levels(storage, debug):
+    """Resolving implicit levels (I1, I2)
+
+    See: http://unicode.org/reports/tr9/#Resolving_Implicit_Levels
+
+    """
+    for run in storage['runs']:
+        start, length = run['start'], run['length']
+        chars = storage['chars'][start:start+length]
+
+        for _ch in chars:
+            # only those types are allowed at this stage
+            assert _ch['type'] in ('L', 'R', 'EN', 'AN')
+
+            if _embedding_direction(_ch['level']) == 'L':
+                # I1. For all characters with an even (left-to-right) embedding
+                # direction, those of type R go up one level and those of type
+                # AN or EN go up two levels.
+                if _ch['type'] == 'R':
+                    _ch['level'] += 1
+                elif _ch['type'] != 'L':
+                    _ch['level'] += 2
+            else:
+                # I2. For all characters with an odd (right-to-left) embedding
+                # direction, those of type L, EN or AN  go up one level.
+                if _ch['type'] != 'R':
+                    _ch['level'] += 1
+
+    #calc_level_runs(storage)
+
+    if debug:
+        debug_storage(storage, runs=True)
 
 def get_display(unicode_or_str, encoding='utf-8', upper_is_rtl=False,
                 debug=False):
@@ -340,5 +426,7 @@ def get_display(unicode_or_str, encoding='utf-8', upper_is_rtl=False,
     get_embedding_levels(text, storage, upper_is_rtl, debug)
     explicit_embed_and_overrides(storage, debug)
     resolve_weak_types(storage, debug)
+    resolve_neutral_types(storage, debug)
+    resolve_implicit_levels(storage, debug)
 
     return 'yo'
