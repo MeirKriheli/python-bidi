@@ -1,7 +1,6 @@
 "bidirectional alogrithm implementation"
 
 from unicodedata import bidirectional, mirrored
-import sys
 import inspect
 from collections import deque
 from mirror import MIRRORED
@@ -29,15 +28,21 @@ _embedding_direction = lambda x:('L', 'R')[x % 2]
 def debug_storage(storage, base_info=False, chars=True, runs=False):
     "Display debug information for the storage"
 
+    import codecs
+    import locale
+    import sys
+
+    stderr = codecs.getwriter(locale.getpreferredencoding())(sys.stderr)
+
     caller = inspect.stack()[1][3]
-    sys.stderr.write('in %s\n' % caller)
+    stderr.write('in %s\n' % caller)
 
     if base_info:
-        sys.stderr.write(u'  base level  : %d\n' % storage['base_level'])
-        sys.stderr.write(u'  base dir    : %s\n' % storage['base_dir'])
+        stderr.write(u'  base level  : %d\n' % storage['base_level'])
+        stderr.write(u'  base dir    : %s\n' % storage['base_dir'])
 
     if runs:
-        sys.stderr.write(u'  runs        : %s\n' % list(storage['runs']))
+        stderr.write(u'  runs        : %s\n' % list(storage['runs']))
 
     if chars:
         output = u'  Chars       : '
@@ -46,11 +51,11 @@ def debug_storage(storage, base_info=False, chars=True, runs=False):
                 output += _ch['ch']
             else:
                 output += 'C'
-        sys.stderr.write(output + u'\n')
+        stderr.write(output + u'\n')
 
         output = u'  Res. levels : %s\n' % u''.join(
             [unicode(_ch['level']) for _ch in storage['chars']])
-        sys.stderr.write(output)
+        stderr.write(output)
 
         _types = [_ch['type'].ljust(3) for _ch in storage['chars']]
 
@@ -59,7 +64,7 @@ def debug_storage(storage, base_info=False, chars=True, runs=False):
                 output = u'                %s\n'
             else:
                 output = u'  Res. types  : %s\n'
-            sys.stderr.write(output % u''.join([_t[i] for _t in _types]))
+            stderr.write(output % u''.join([_t[i] for _t in _types]))
 
 def get_embedding_levels(text, storage, upper_is_rtl=False, debug=False):
     """Get the paragraph base embedding level and direction,
