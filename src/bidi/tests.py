@@ -29,6 +29,27 @@ class TestBidiAlgorithm(unittest.TestCase):
         for storage, display in tests:
             self.assertEqual(get_display(storage, upper_is_rtl=True), display)
 
+    def test_explicit_with_upper_is_rtl(self):
+        """Explicit tests"""
+        tests = (
+            (u'this is _LJUST_o', u'this is JUST'),
+            (u'a _lsimple _RteST_o th_oat', u'a simple TSet that'),
+            (u'HAS A _LPDF missing', u'PDF missing A SAH'),
+            (u'AnD hOw_L AbOuT, 123,987 tHiS_o', u'w AbOuT, 123,987 tHiSOh DnA'),
+            (u'a GOOD - _L_oTEST.', u'a TSET - DOOG.'),
+            (u'here_L is_o_o_o _R a good one_o', u'here is eno doog a'),
+            (u'And _r 123,987_LTHE_R next_o oNE:', u'987THEtxen  oNE:,123  ndA'),
+            (u'_R_r and the last _LONE_o IS', u'SI and the last ONE'),
+            (u'THE _rbest _lONE and', u'best ENO and EHT'),
+            (u'A REAL BIG_l_o BUG!', u'!GUB GIB LAER A'),
+            (u'a _L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_Rbug', u'a gub'),
+            (u'AN ARABIC _l_o 123-456 NICE ONE!', u'!ENO ECIN 456-123  CIBARA NA'),
+            (u'AN ARABIC _l _o 123-456 PAIR', u'RIAP   123-456 CIBARA NA'),
+            (u'this bug 67_r_o89 catched!', u'this bug 6789 catched!'),
+        )
+
+        for storage, display in tests:
+            self.assertEqual(get_display(storage, upper_is_rtl=True), display)
 
 
 if __name__ == '__main__':
