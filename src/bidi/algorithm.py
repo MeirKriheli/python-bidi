@@ -269,7 +269,7 @@ def resolve_weak_types(storage, debug=False):
         for idx in range(1, len(chars) -1 ):
             bidi_type = chars[idx]['type']
             prev_type = chars[idx-1]['type']
-            next_type = chars[idx-1]['type']
+            next_type = chars[idx+1]['type']
 
             if bidi_type == 'ES' and (prev_type == next_type == 'EN'):
                 chars[idx]['type'] = 'EN'
@@ -322,8 +322,12 @@ def resolve_neutral_types(storage, debug):
 
     for run in storage['runs']:
         start, length = run['start'], run['length']
-        chars = storage['chars'][start:start+length]
+        # use sor and eor
+        chars = [{'type':run['sor']}] + storage['chars'][start:start+length] +\
+                [{'type':run['eor']}]
         total_chars = len(chars)
+
+        seq_start = None
         for idx in range(total_chars):
             _ch = chars[idx]
             if _ch['type'] in ('B', 'S', 'WS', 'ON'):
@@ -333,33 +337,32 @@ def resolve_neutral_types(storage, debug):
                 # in terms of their influence on neutrals. Start-of-level-run
                 # (sor) and end-of-level-run (eor) are used at level run
                 # boundaries.
-                if not idx:
-                    prev_bidi_type = run['sor']
-                else:
+                if seq_start is None:
+                    seq_start = idx
                     prev_bidi_type = chars[idx-1]['type']
+            else:
+                if seq_start is not None:
+                    next_bidi_type = chars[idx]['type']
 
-                if idx < total_chars -1:
-                    next_bidi_type = chars[idx+1]['type']
-                else:
-                    next_bidi_type = run['eor']
+                    if prev_bidi_type in ('AN', 'EN'):
+                        prev_bidi_type = 'R'
 
-                if prev_bidi_type in ('AN', 'EN'):
-                    prev_bidi_type = 'R'
+                    if next_bidi_type in ('AN', 'EN'):
+                        next_bidi_type = 'R'
 
-                if next_bidi_type in ('AN', 'EN'):
-                    next_bidi_type = 'R'
+                    for seq_idx in range(seq_start, idx):
+                        if prev_bidi_type == next_bidi_type:
+                            chars[seq_idx]['type'] = prev_bidi_type
+                        else:
+                            # N2. Any remaining neutrals take the embedding
+                            # direction. The embedding direction for the given
+                            # neutral character is derived from its embedding
+                            # level: L if the character is set to an even level,
+                            # and R if the level is odd.
+                            chars[seq_idx]['type'] = \
+                                _embedding_direction(chars[seq_idx]['level'])
 
-                if prev_bidi_type == next_bidi_type:
-                    _ch['type'] = prev_bidi_type
-
-                # N2. Any remaining neutrals take the embedding direction. The
-                # embedding direction for the given neutral character is derived
-                # from its embedding level: L if the character is set to an even
-                # level, and R if the level is odd.
-                else:
-                    _ch['type'] = _embedding_direction(_ch['level'])
-
-    #calc_level_runs(storage)
+                    seq_start = None
 
     if debug:
         debug_storage(storage)
