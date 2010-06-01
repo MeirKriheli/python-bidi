@@ -61,7 +61,7 @@ class TestBidiAlgorithm(unittest.TestCase):
         for storage, display in tests:
             for key, val in mappings.items():
                 storage = storage.replace(key, val)
-            self.assertEqual(get_display(storage, upper_is_rtl=True, debug=True), display)
+            self.assertEqual(get_display(storage, upper_is_rtl=True), display)
 
 
 if __name__ == '__main__':
