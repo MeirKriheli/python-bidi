@@ -23,6 +23,7 @@ Implementation of Unicode Bidirectional Algorithm
 http://www.unicode.org/unicode/reports/tr9/
 """
 
+VERSION = '0.3'
 
 def main():
     """Will be used to create the console script"""

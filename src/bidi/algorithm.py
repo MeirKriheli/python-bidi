@@ -525,7 +525,11 @@ def get_display(unicode_or_str, encoding='utf-8', upper_is_rtl=False,
     Set `upper_is_rtl` to True to treat upper case chars as strong 'R'
     for debugging (default: False).
 
-    Set `debug` to True to display the steps taken with the algorithm"
+    Set `debug` to True to display (using sys.stderr) the steps taken with the
+    algorithm.
+
+    Returns the display layout, either as unicode or `encoding` encoded
+    string.
 
     """
     # create a skeleton to work on
