@@ -171,7 +171,7 @@ def explicit_embed_and_overrides(storage, debug=False):
 
     #Applies X9. See http://unicode.org/reports/tr9/#X9
     storage['chars'] = [_ch for _ch in storage['chars']\
-                        if _ch not in X9_REMOVED]
+                        if _ch['type'] not in X9_REMOVED]
 
     calc_level_runs(storage)
 
