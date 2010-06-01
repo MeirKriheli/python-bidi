@@ -1,0 +1,6 @@
+include TODO
+include COPYING
+include COPYING.LESSER
+include README.rst
+include MANIFEST.in
+include CHANGELOG.rst
