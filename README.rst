@@ -67,3 +67,13 @@ Examples::
 
     $ cat ~/Documents/example.txt | pybidi
     ...
+
+ Running tests
+ --------------
+
+To run the tests::
+
+    python -m bidi.tests
+
+Some explicit tests are failing right now (see TODO)
+
