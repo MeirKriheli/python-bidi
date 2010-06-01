@@ -376,7 +376,8 @@ def resolve_implicit_levels(storage, debug):
 
         for _ch in chars:
             # only those types are allowed at this stage
-            assert _ch['type'] in ('L', 'R', 'EN', 'AN')
+            assert _ch['type'] in ('L', 'R', 'EN', 'AN'),\
+                    '%s not allowed here' % _ch['type']
 
             if _embedding_direction(_ch['level']) == 'L':
                 # I1. For all characters with an even (left-to-right) embedding
