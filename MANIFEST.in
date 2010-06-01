@@ -1,4 +1,4 @@
-include TODO
+include TODO.rst
 include COPYING
 include COPYING.LESSER
 include README.rst

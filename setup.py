@@ -8,9 +8,7 @@ setup(
     name = "python-bidi",
     version = "0.3",
     url = 'http://github.com/mksoft/python-bidi',
-    license = 'LGPL',
-    description = "BIDI related functions",
-    long_description = read('README.rst') + read('CHANGELOG.rst'),
+    long_description = read('README.rst') + read('CHANGELOG.rst') + read('TODO.rst'),
 
     author = 'Meir Kriheli',
     author_email = 'meir@mksoft.co.il',
