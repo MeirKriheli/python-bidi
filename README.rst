@@ -68,8 +68,13 @@ Examples::
     $ cat ~/Documents/example.txt | pybidi
     ...
 
- Running tests
- --------------
+Installation
+-------------
+
+See ``docs/INSTALL.rst``
+
+Running tests
+--------------
 
 To run the tests::
 
