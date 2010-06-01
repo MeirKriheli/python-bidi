@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.3.1
+-----
+
+* Added missing description
+* docs/INSTALL.rst
+
 0.3
 ---
 
