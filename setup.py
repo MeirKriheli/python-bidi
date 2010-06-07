@@ -6,7 +6,7 @@ def read(fname):
 
 setup(
     name = "python-bidi",
-    version = "0.3.1",
+    version = "0.3.2",
     url = 'http://github.com/mksoft/python-bidi',
     description = 'BiDi layout implementation in pure python',
     long_description = read('README.rst') + read('CHANGELOG.rst') + read('TODO.rst'),
