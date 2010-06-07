@@ -18,10 +18,29 @@
 """BiDi algorithm unit tests"""
 
 import unittest
-from bidi.algorithm import get_display
+from bidi.algorithm import get_display, get_empty_storage, get_embedding_levels
 
 class TestBidiAlgorithm(unittest.TestCase):
     "Tests the bidi algorithm (based on GNU fribidi ones)"
+
+    def test_surrogate(self):
+        """Test for storage and base levels in case of surrogate pairs"""
+
+        storage = get_empty_storage()
+
+        text = u'HELLO \U0001d7f612'
+        get_embedding_levels(text, storage, upper_is_rtl=True)
+
+        # should return 9, not 10 even in --with-unicode=ucs2
+        self.assertEqual(len(storage['chars']), 9)
+
+        # Is the expected result ? should be EN
+        _ch = storage['chars'][6]
+        self.assertEqual(_ch['ch'], u'\U0001d7f6')
+        self.assertEqual(_ch['type'], 'EN')
+
+        display = get_display(text, upper_is_rtl=True)
+        self.assertEqual(display, u'\U0001d7f612 OLLEH')
 
     def test_implict_with_upper_is_rtl(self):
         '''Implicit tests'''

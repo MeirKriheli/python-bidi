@@ -19,6 +19,7 @@
 
 from unicodedata import bidirectional, mirrored
 import inspect
+import sys
 from collections import deque
 from mirror import MIRRORED
 
@@ -89,8 +90,20 @@ def get_embedding_levels(text, storage, upper_is_rtl=False, debug=False):
 
     base_level = None
 
+    is_ucs2 = sys.maxunicode == 65535
+    surrogate_min, surrogate_max = 55296, 56319 # D800, DBFF
+
+    prev_surrogate = False
     # P2
     for _ch in text:
+        # surrogate in case of ucs2
+        if is_ucs2 and (surrogate_min <= ord(_ch) <= surrogate_max):
+            prev_surrogate = _ch
+            continue
+        elif prev_surrogate:
+            _ch = prev_surrogate + _ch
+            prev_surrogate = False
+
         # treat upper as RTL ?
         if upper_is_rtl and _ch.isupper():
             base_level = 1
@@ -113,8 +126,17 @@ def get_embedding_levels(text, storage, upper_is_rtl=False, debug=False):
     storage['base_level'] = base_level
     storage['base_dir'] = ('L', 'R')[base_level]
 
+    prev_surrogate = False
+
     # preset the storage's chars
     for _ch in text:
+        if is_ucs2 and (surrogate_min <= ord(_ch) <= surrogate_max):
+            prev_surrogate = _ch
+            continue
+        elif prev_surrogate:
+            _ch = prev_surrogate + _ch
+            prev_surrogate = False
+
         if upper_is_rtl and _ch.isupper():
             bidi_type = 'R'
         else:
@@ -533,6 +555,15 @@ def apply_mirroring(storage, debug):
     if debug:
         debug_storage(storage)
 
+def get_empty_storage():
+    """Return an empty storage skeleton, usable for testing"""
+    return {
+        'base_level': None,
+        'base_dir' : None,
+        'chars': [],
+        'runs' : deque(),
+    }
+
 
 def get_display(unicode_or_str, encoding='utf-8', upper_is_rtl=False,
                 debug=False):
@@ -549,13 +580,8 @@ def get_display(unicode_or_str, encoding='utf-8', upper_is_rtl=False,
     string.
 
     """
-    # create a skeleton to work on
-    storage = {
-        'base_level': None,
-        'base_dir' : None,
-        'chars': [],
-        'runs' : deque(),
-    }
+
+    storage = get_empty_storage()
 
     # utf-8 ? we need unicode
     if isinstance(unicode_or_str, unicode):
