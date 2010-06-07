@@ -13,21 +13,21 @@ The algorithm starts with a single entry point `bidi.algorithm.get_display`.
 
 **Required arguments:**
 
-    * ``unicode_or_str``: The orginal unicode or string (i.e: storage). If it's a string
-      use the optional argument ``encoding`` to specify it's encoding.
+* ``unicode_or_str``: The orginal unicode or string (i.e: storage). If it's a string
+  use the optional argument ``encoding`` to specify it's encoding.
 
 **Optional arguments:**
 
-    * ``encoding``: If unicode_or_str is a string, specifies the encdoing. The
-      algorithm uses unicodedata_ which requires unicode. This encoding will be
-      used to decode and encode back to string before returning
-      (default: "utf-8").
+* ``encoding``: If unicode_or_str is a string, specifies the encdoing. The
+  algorithm uses unicodedata_ which requires unicode. This encoding will be
+  used to decode and encode back to string before returning
+  (default: "utf-8").
 
-    * ``upper_is_rtl``: True to treat upper case chars as strong 'R' for
-      debugging (default: False).
+* ``upper_is_rtl``: True to treat upper case chars as strong 'R' for
+  debugging (default: False).
 
-    * ``debug``: True to display (using `sys.stderr`_) the steps taken with the
-      algorithm (default: False).
+* ``debug``: True to display (using `sys.stderr`_) the steps taken with the
+  algorithm (default: False).
 
 Returns the display layout, either as unicode or ``encoding`` encoded string
 (depending on the type of ``unicode_or_str'``).
