@@ -1,6 +1,13 @@
 Changelog
 =========
 
+0.3.2
+------
+
+* Test for surrogate pairs
+* Fix indentation in documentations
+* Specify license in setup.py
+
 0.3.1
 -----
 

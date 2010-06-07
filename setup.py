@@ -10,7 +10,7 @@ setup(
     url = 'http://github.com/mksoft/python-bidi',
     description = 'BiDi layout implementation in pure python',
     long_description = read('README.rst') + read('CHANGELOG.rst') + read('TODO.rst'),
-
+    license = 'http://www.gnu.org/licenses/lgpl.html',
     author = 'Meir Kriheli',
     author_email = 'meir@mksoft.co.il',
 
