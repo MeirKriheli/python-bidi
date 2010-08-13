@@ -599,8 +599,10 @@ def get_display(unicode_or_str, encoding='utf-8', upper_is_rtl=False,
     # utf-8 ? we need unicode
     if isinstance(unicode_or_str, unicode):
         text = unicode_or_str
+        decoded = False
     else:
         text = unicode_or_str.decode(encoding)
+        decoded = True
 
     if base_dir is None:
         base_level = get_base_level(text, upper_is_rtl)
@@ -619,4 +621,9 @@ def get_display(unicode_or_str, encoding='utf-8', upper_is_rtl=False,
     apply_mirroring(storage, debug)
 
     chars = storage['chars']
-    return u''.join([_ch['ch'] for _ch in chars])
+    display = u''.join([_ch['ch'] for _ch in chars])
+
+    if decoded:
+        return display.encode(encoding)
+    else:
+        return display
