@@ -578,12 +578,14 @@ def get_empty_storage():
 
 
 def get_display(unicode_or_str, encoding='utf-8', upper_is_rtl=False,
-                debug=False):
+                base_dir=None, debug=False):
     """Accepts unicode or string. In case it's a string, `encoding`
     is needed as it works on unicode ones (default:"utf-8").
 
     Set `upper_is_rtl` to True to treat upper case chars as strong 'R'
     for debugging (default: False).
+
+    Set `base_dir` to 'L' or 'R' to override the calculated base_level.
 
     Set `debug` to True to display (using sys.stderr) the steps taken with the
     algorithm.
@@ -592,7 +594,6 @@ def get_display(unicode_or_str, encoding='utf-8', upper_is_rtl=False,
     string.
 
     """
-
     storage = get_empty_storage()
 
     # utf-8 ? we need unicode
@@ -601,7 +602,10 @@ def get_display(unicode_or_str, encoding='utf-8', upper_is_rtl=False,
     else:
         text = unicode_or_str.decode(encoding)
 
-    base_level = get_base_level(text, upper_is_rtl)
+    if base_dir is None:
+        base_level = get_base_level(text, upper_is_rtl)
+    else:
+        base_level = PARAGRAPH_LEVELS[base_dir]
 
     storage['base_level'] = base_level
     storage['base_dir'] = ('L', 'R')[base_level]

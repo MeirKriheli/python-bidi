@@ -26,6 +26,8 @@ The algorithm starts with a single entry point `bidi.algorithm.get_display`.
 * ``upper_is_rtl``: True to treat upper case chars as strong 'R' for
   debugging (default: False).
 
+* ``base_dir``:  'L' or 'R', override the calculated base_level.
+
 * ``debug``: True to display (using `sys.stderr`_) the steps taken with the
   algorithm (default: False).
 
