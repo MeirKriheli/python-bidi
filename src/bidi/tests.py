@@ -65,6 +65,16 @@ class TestBidiAlgorithm(unittest.TestCase):
         for storage, display in tests:
             self.assertEqual(get_display(storage, upper_is_rtl=True), display)
 
+    def test_override_base_dir(self):
+        """Tests overriding the base paragraph direction"""
+
+        # normaly the display should be :MOLAHS be since we're overriding the
+        # base dir the colon should be at the end of the display
+        storage = u'SHALOM:'
+        display = u'MOLAHS:'
+
+        self.assertEqual(get_display(storage, upper_is_rtl=True, base_dir='L'), display)
+
     def test_explicit_with_upper_is_rtl(self):
         """Explicit tests"""
         tests = (
