@@ -75,6 +75,17 @@ class TestBidiAlgorithm(unittest.TestCase):
 
         self.assertEqual(get_display(storage, upper_is_rtl=True, base_dir='L'), display)
 
+
+
+    def test_output_encoding(self):
+        """Make sure the display is in the same encdoing as the incoming text"""
+
+        storage = '\xf9\xec\xe5\xed'        # Hebrew word shalom in cp1255
+        display = '\xed\xe5\xec\xf9'
+
+        self.assertEqual(get_display(storage, encoding='cp1255'), display)
+
+
     def test_explicit_with_upper_is_rtl(self):
         """Explicit tests"""
         tests = (
