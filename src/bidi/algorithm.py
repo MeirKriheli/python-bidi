@@ -43,6 +43,9 @@ X9_REMOVED = X2_X5_MAPPINGS.keys() + ['BN', 'PDF']
 
 _embedding_direction = lambda x:('L', 'R')[x % 2]
 
+_IS_UCS2 = sys.maxunicode == 65535
+_SURROGATE_MIN, _SURROGATE_MAX = 55296, 56319 # D800, DBFF
+
 def debug_storage(storage, base_info=False, chars=True, runs=False):
     "Display debug information for the storage"
 
@@ -84,20 +87,25 @@ def debug_storage(storage, base_info=False, chars=True, runs=False):
                 output = u'  Res. types  : %s\n'
             stderr.write(output % u''.join([_t[i] for _t in _types]))
 
-def get_embedding_levels(text, storage, upper_is_rtl=False, debug=False):
-    """Get the paragraph base embedding level and direction,
-    set the storage to the array of chars"""
+
+def get_base_level(text, upper_is_rtl=False):
+    """Get the paragraph base embedding level. Returns 0 for LTR,
+    1 for RTL.
+
+    `text` a unicode object.
+
+    Set `upper_is_rtl` to True to treat upper case chars as strong 'R'
+    for debugging (default: False).
+
+    """
 
     base_level = None
-
-    is_ucs2 = sys.maxunicode == 65535
-    surrogate_min, surrogate_max = 55296, 56319 # D800, DBFF
 
     prev_surrogate = False
     # P2
     for _ch in text:
         # surrogate in case of ucs2
-        if is_ucs2 and (surrogate_min <= ord(_ch) <= surrogate_max):
+        if _IS_UCS2 and (_SURROGATE_MIN <= ord(_ch) <= _SURROGATE_MAX):
             prev_surrogate = _ch
             continue
         elif prev_surrogate:
@@ -123,14 +131,18 @@ def get_embedding_levels(text, storage, upper_is_rtl=False, debug=False):
     if base_level is None:
         base_level = 0
 
-    storage['base_level'] = base_level
-    storage['base_dir'] = ('L', 'R')[base_level]
+    return base_level
+
+def get_embedding_levels(text, storage, upper_is_rtl=False, debug=False):
+    """Get the paragraph base embedding level and direction,
+    set the storage to the array of chars"""
 
     prev_surrogate = False
+    base_level = storage['base_level']
 
     # preset the storage's chars
     for _ch in text:
-        if is_ucs2 and (surrogate_min <= ord(_ch) <= surrogate_max):
+        if _IS_UCS2 and (_SURROGATE_MIN <= ord(_ch) <= _SURROGATE_MAX):
             prev_surrogate = _ch
             continue
         elif prev_surrogate:
@@ -588,6 +600,11 @@ def get_display(unicode_or_str, encoding='utf-8', upper_is_rtl=False,
         text = unicode_or_str
     else:
         text = unicode_or_str.decode(encoding)
+
+    base_level = get_base_level(text, upper_is_rtl)
+
+    storage['base_level'] = base_level
+    storage['base_dir'] = ('L', 'R')[base_level]
 
     get_embedding_levels(text, storage, upper_is_rtl, debug)
     explicit_embed_and_overrides(storage, debug)
