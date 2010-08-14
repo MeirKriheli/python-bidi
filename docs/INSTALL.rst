@@ -9,9 +9,9 @@ You have several options to install python-bidi:
 
     * Download the tarball and extract it and run setup.py::
         
-        wget http://github.com/downloads/mksoft/python-bidi/python-bidi-0.3.3.tar.gz
-        tar zxf python-bidi-0.3.3.tar.gz
-        cd python-bidi-0.3.3
+        wget http://github.com/downloads/mksoft/python-bidi/python-bidi-0.3.4.tar.gz
+        tar zxf python-bidi-0.3.4.tar.gz
+        cd python-bidi-0.3.4
         python setup.py install
 
     * Development version - python-bidi is using ``git`` and ``buildout``::

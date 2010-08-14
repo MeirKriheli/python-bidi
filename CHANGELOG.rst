@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.3.4
+------
+
+* Remove extra newline in console script output
+
 0.3.3
 ------
 
