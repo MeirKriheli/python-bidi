@@ -22,7 +22,7 @@ Implementation of Unicode Bidirectional Algorithm
 http://www.unicode.org/unicode/reports/tr9/
 """
 
-VERSION = '0.3.2'
+VERSION = '0.3.3'
 
 def main():
     """Will be used to create the console script"""
@@ -45,7 +45,7 @@ def main():
                       dest='upper_is_rtl',
                       default=False,
                       action='store_true',
-                      help="treat upper case chars as strong 'R' "
+                      help="Treat upper case chars as strong 'R' "
                         'for debugging (default: False).')
 
     parser.add_option('-d', '--debug',
@@ -54,15 +54,30 @@ def main():
                       action='store_true',
                       help="Display the steps taken with the algorithm")
 
+    parser.add_option('-b', '--base-dir',
+                      dest='base_dir',
+                      default=None,
+                      type='string',
+                      help="Override base direction [L|R]")
+
     options, rest = parser.parse_args()
+
+    if options.base_dir and options.base_dir not in 'LR':
+        parser.error('option -b can be L or R')
 
     # allow unicode in sys.stdout.write
     sys.stdout = codecs.getwriter(locale.getpreferredencoding())(sys.stdout)
 
     if rest:
-        sys.stdout.write(get_display(rest[0], options.encoding,
-                    options.upper_is_rtl, options.debug))
+        lines = rest
     else:
-        for line in sys.stdin:
-            sys.stdout.write(get_display(line, options.encoding,
-                    options.upper_is_rtl, options.debug))
+        lines = sys.stdin
+
+    for line in lines:
+        display = get_display(line, options.encoding, options.upper_is_rtl,
+                              options.base_dir, options.debug)
+        # adjust the encoding as unicode, to match the output encoding
+        if not isinstance(display, unicode):
+            display = display.decode(options.encoding)
+
+        sys.stdout.write(display + '\n')
