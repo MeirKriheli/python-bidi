@@ -1,6 +1,13 @@
 Changelog
 =========
 
+0.3.3
+------
+
+* Implement overriding base paragraph direction
+* Allow overriding base direction in pybidi console script
+* Fix returning display in same encoding
+
 0.3.2
 ------
 
