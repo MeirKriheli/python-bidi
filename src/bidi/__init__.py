@@ -80,4 +80,4 @@ def main():
         if not isinstance(display, unicode):
             display = display.decode(options.encoding)
 
-        sys.stdout.write(display + '\n')
+        sys.stdout.write(display)
