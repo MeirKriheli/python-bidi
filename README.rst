@@ -1,5 +1,15 @@
-python-bidi
-=================
+===============================
+Python BiDi
+===============================
+
+.. image:: https://badge.fury.io/py/python-bidi.png
+    :target: http://badge.fury.io/py/python-bidi
+
+.. image:: https://travis-ci.org/MeirKriheli/python-bidi.png?branch=master
+        :target: https://travis-ci.org/MeirKriheli/python-bidi
+
+.. image:: https://pypip.in/d/python-bidi/badge.png
+        :target: https://pypi.python.org/pypi/python-bidi
 
 `Bi-directional`_ (BiDi) layout implementation in pure python
 

@@ -1,4 +1,6 @@
-Changelog
+.. :changelog:
+
+History
 =========
 
 0.3.4
@@ -41,4 +43,3 @@ Changelog
 ---
 
 * Initial release
-
