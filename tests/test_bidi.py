@@ -18,7 +18,9 @@
 """BiDi algorithm unit tests"""
 
 import unittest
+import six
 from bidi.algorithm import get_display, get_empty_storage, get_embedding_levels
+
 
 class TestBidiAlgorithm(unittest.TestCase):
     "Tests the bidi algorithm (based on GNU fribidi ones)"
@@ -80,8 +82,8 @@ class TestBidiAlgorithm(unittest.TestCase):
     def test_output_encoding(self):
         """Make sure the display is in the same encdoing as the incoming text"""
 
-        storage = '\xf9\xec\xe5\xed'        # Hebrew word shalom in cp1255
-        display = '\xed\xe5\xec\xf9'
+        storage = six.b('\xf9\xec\xe5\xed')        # Hebrew word shalom in cp1255
+        display = six.b('\xed\xe5\xec\xf9')
 
         self.assertEqual(get_display(storage, encoding='cp1255'), display)
 

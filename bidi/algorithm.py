@@ -600,7 +600,7 @@ def get_display(unicode_or_str, encoding='utf-8', upper_is_rtl=False,
     storage = get_empty_storage()
 
     # utf-8 ? we need unicode
-    if isinstance(unicode_or_str, six.string_types):
+    if isinstance(unicode_or_str, six.text_type):
         text = unicode_or_str
         decoded = False
     else:
