@@ -24,6 +24,7 @@ http://www.unicode.org/unicode/reports/tr9/
 
 VERSION = '0.3.4'
 
+
 def main():
     """Will be used to create the console script"""
 
@@ -31,7 +32,8 @@ def main():
     import sys
     import codecs
     import locale
-    from algorithm import get_display
+    import six
+    from .algorithm import get_display
 
     parser = optparse.OptionParser()
 
@@ -46,7 +48,7 @@ def main():
                       default=False,
                       action='store_true',
                       help="Treat upper case chars as strong 'R' "
-                        'for debugging (default: False).')
+                      'for debugging (default: False).')
 
     parser.add_option('-d', '--debug',
                       dest='debug',
@@ -77,7 +79,7 @@ def main():
         display = get_display(line, options.encoding, options.upper_is_rtl,
                               options.base_dir, options.debug)
         # adjust the encoding as unicode, to match the output encoding
-        if not isinstance(display, unicode):
+        if not isinstance(display, six.text_type):
             display = display.decode(options.encoding)
 
         sys.stdout.write(display)
