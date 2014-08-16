@@ -238,6 +238,60 @@ class BidiLayout(object):
         elif self.overflow_isolate_count == 0:
             self.overflow_embedding_count += 1
 
+    def X4(self, idx):
+        """X4_ implementation:
+
+        With each RLO, perform the following steps:
+
+        * Compute the least odd embedding level greater than the embedding
+          level of the last entry on the directional status stack.
+        * If this new level would be valid, and the overflow isolate count and
+          overflow embedding count are both zero, then this RLO is valid. Push
+          an entry consisting of the new embedding level, right-to-left
+          directional override status, and false directional isolate status
+          onto the directional status stack.
+        * Otherwise, this is an overflow RLO. If the overflow isolate count is
+          zero, increment the overflow embedding count by one. Leave all other
+          variables unchanged.
+
+        .. _X4: http://www.unicode.org/reports/tr9/#X4
+        """
+        level = least_greater_odd(self.last_level_entry.embedding_level)
+
+        if (level <= MAX_DEPTH and self.overflow_isolate_count == 0
+                and self.overflow_embedding_count == 0):
+            self.last_level_entry = LevelEntry(level, 'R', False)
+            self.levels_stack.append(self.last_level_entry)
+        elif self.overflow_isolate_count == 0:
+            self.overflow_embedding_count += 1
+
+    def X5(self, idx):
+        """X5_ implementation:
+
+        With each LRO, perform the following steps:
+
+        * Compute the least even embedding level greater than the embedding
+          level of the last entry on the directional status stack.
+        * If this new level would be valid, and the overflow isolate count and
+          overflow embedding count are both zero, then this LRO is valid. Push
+          an entry consisting of the new embedding level, left-to-right
+          directional override status, and false directional isolate status
+          onto the directional status stack.
+        * Otherwise, this is an overflow LRO. If the overflow isolate count is
+          zero, increment the overflow embedding count by one. Leave all other
+          variables unchanged.
+
+        .. _X5: http://www.unicode.org/reports/tr9/#X5
+        """
+        level = least_greater_even(self.last_level_entry.embedding_level)
+
+        if (level <= MAX_DEPTH and self.overflow_isolate_count == 0
+                and self.overflow_embedding_count == 0):
+            self.last_level_entry = LevelEntry(level, 'L', False)
+            self.levels_stack.append(self.last_level_entry)
+        elif self.overflow_isolate_count == 0:
+            self.overflow_embedding_count += 1
+
     def explicit_levels_and_directions(self):
 
         MAPPINGS = {
