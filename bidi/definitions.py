@@ -28,3 +28,5 @@ PARAGRAPH_LEVELS = {
     'AL': 1,
     'R': 1,
 }
+
+ISOLATE_INITIATORS = ('LRI', 'RLI', 'FSI')

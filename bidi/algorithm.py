@@ -25,7 +25,7 @@ import six
 
 from .mirror import MIRRORED
 from .definitions import (PARAGRAPH_LEVELS, IS_UCS2, SURROGATE_MIN,
-                          SURROGATE_MAX)
+                          SURROGATE_MAX, ISOLATE_INITIATORS)
 
 
 class BidiLayout(object):
@@ -78,15 +78,29 @@ class BidiLayout(object):
 
             else:
                 upper_is_rtl = self.upper_is_rtl
+                isolate_initiator_level = 0
 
                 # P2
                 for ch in self.iter_text():
+                    bidi_type = bidirectional(ch)
+
+                    if bidi_type in ISOLATE_INITIATORS:
+                        isolate_initiator_level += 1
+                        continue
+
+                    if bidi_type == 'PDI' and isolate_initiator_level > 0:
+                        isolate_initiator_level -= 1
+                        continue
+
+                    # ignore isolate initiators till it's matching PDI
+                    if isolate_initiator_level > 0:
+                        continue
 
                     if upper_is_rtl and ch.isupper():
                         self._base_level = PARAGRAPH_LEVELS['R']
                         break
 
-                    self._base_level = PARAGRAPH_LEVELS.get(bidirectional(ch))
+                    self._base_level = PARAGRAPH_LEVELS.get(bidi_type)
 
                     if self._base_level is not None:
                         break
@@ -96,6 +110,9 @@ class BidiLayout(object):
                     self._base_level = PARAGRAPH_LEVELS['L']
 
         return self._base_level
+
+    def prepare_chars(self):
+        """Setup the initial chars and their attributes"""
 
 
 # Some definitions
