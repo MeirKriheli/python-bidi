@@ -162,6 +162,15 @@ class BidiLayout(object):
                 'orig': bidi_type,
             })
 
+    def push_levels_entry(self, entry):
+        "Appends entry to levels_stack, and sets it as last_level_entry"
+        self.last_level_entry = entry
+        self.levels_stack.append(entry)
+
+    def is_valid_level_and_counters(self, level):
+        return (level <= MAX_DEPTH and self.overflow_isolate_count == 0
+                and self.overflow_embedding_count == 0)
+
     def X1(self):
         """Applies X1_:
 
@@ -176,8 +185,8 @@ class BidiLayout(object):
         .. _X1: http://www.unicode.org/reports/tr9/#X1
         """
 
-        self.last_level_entry = LevelEntry(self.base_level, 'N', False)
-        self.levels_stack = deque([self.last_level_entry])
+        self.levels_stack = deque()
+        self.push_levels_entry(LevelEntry(self.base_level, 'N', False))
         self.overflow_isolate_count = 0
         self.overflow_embedding_count = 0
         self.valid_isolate_count = 0
@@ -203,10 +212,8 @@ class BidiLayout(object):
 
         level = least_greater_odd(self.last_level_entry.embedding_level)
 
-        if (level <= MAX_DEPTH and self.overflow_isolate_count == 0
-                and self.overflow_embedding_count == 0):
-            self.last_level_entry = LevelEntry(level, 'N', False)
-            self.levels_stack.append(self.last_level_entry)
+        if self.is_valid_level_and_counters(level):
+            self.push_levels_entry(LevelEntry(level, 'N', False))
         elif self.overflow_isolate_count == 0:
             self.overflow_embedding_count += 1
 
@@ -231,10 +238,8 @@ class BidiLayout(object):
 
         level = least_greater_even(self.last_level_entry.embedding_level)
 
-        if (level <= MAX_DEPTH and self.overflow_isolate_count == 0
-                and self.overflow_embedding_count == 0):
-            self.last_level_entry = LevelEntry(level, 'N', False)
-            self.levels_stack.append(self.last_level_entry)
+        if self.is_valid_level_and_counters(level):
+            self.push_levels_entry(LevelEntry(level, 'N', False))
         elif self.overflow_isolate_count == 0:
             self.overflow_embedding_count += 1
 
@@ -258,9 +263,8 @@ class BidiLayout(object):
         """
         level = least_greater_odd(self.last_level_entry.embedding_level)
 
-        if (level <= MAX_DEPTH and self.overflow_isolate_count == 0
-                and self.overflow_embedding_count == 0):
-            self.last_level_entry = LevelEntry(level, 'R', False)
+        if self.is_valid_level_and_counters(level):
+            self.push_levels_entry(LevelEntry(level, 'R', False))
             self.levels_stack.append(self.last_level_entry)
         elif self.overflow_isolate_count == 0:
             self.overflow_embedding_count += 1
@@ -285,10 +289,8 @@ class BidiLayout(object):
         """
         level = least_greater_even(self.last_level_entry.embedding_level)
 
-        if (level <= MAX_DEPTH and self.overflow_isolate_count == 0
-                and self.overflow_embedding_count == 0):
-            self.last_level_entry = LevelEntry(level, 'L', False)
-            self.levels_stack.append(self.last_level_entry)
+        if self.is_valid_level_and_counters(level):
+            self.push_levels_entry(LevelEntry(level, 'L', False))
         elif self.overflow_isolate_count == 0:
             self.overflow_embedding_count += 1
 
@@ -315,11 +317,9 @@ class BidiLayout(object):
         self.chars[idx]['level'] = self.last_level_entry.embedding_level
 
         level = least_greater_odd(self.last_level_entry.embedding_level)
-        if (level <= MAX_DEPTH and self.overflow_isolate_count == 0
-                and self.overflow_embedding_count == 0):
-            self.last_level_entry = LevelEntry(level, 'N', True)
-            self.levels_stack.append(self.last_level_entry)
+        if self.is_valid_level_and_counters(level):
             self.valid_isolate_count += 1
+            self.push_levels_entry(LevelEntry(level, 'N', True))
         else:
             self.overflow_isolate_count += 1
 
