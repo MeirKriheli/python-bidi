@@ -24,10 +24,81 @@ from unicodedata import bidirectional, mirrored
 import six
 
 from .mirror import MIRRORED
+from .definitions import (PARAGRAPH_LEVELS, IS_UCS2, SURROGATE_MIN,
+                          SURROGATE_MAX)
+
+
+class BidiLayout(object):
+    def __init__(self, unistr, base_dir=None, upper_is_rtl=False, debug=False):
+        self.text = unistr
+        self.upper_is_rtl = upper_is_rtl
+        self.base_dir = base_dir
+        self._base_level = None
+        self.debug = debug
+
+        self.chars = deque()
+        self.prepare_chars()
+
+    def iter_text(self):
+        "yield chars, takes into account surrogate pairs if needed"
+
+        # short circuit for UCS2
+        if not IS_UCS2:
+            for ch in self.text:
+                yield ch
+        else:
+            prev_surrogate = False
+            for ch in self.text:
+                if SURROGATE_MIN <= ord(ch) <= SURROGATE_MAX:
+                    prev_surrogate = ch
+                    continue
+                elif prev_surrogate:
+                    ch = prev_surrogate + ch
+                    prev_surrogate = False
+
+                yield ch
+
+    @property
+    def base_level(self):
+        """Get the paragraph base embedding level. Returns 0 for LTR,
+        1 for RTL.
+
+        Lazy calculated on first access.
+
+        Applies rules P2_ and P3_
+
+        .. _P2: http://www.unicode.org/reports/tr9/#P2
+        .. _P3: http://www.unicode.org/reports/tr9/#P3
+
+        """
+        if self._base_level is None:
+
+            if self.base_dir is not None:
+                self._base_level = PARAGRAPH_LEVELS[self.base_dir]
+
+            else:
+                upper_is_rtl = self.upper_is_rtl
+
+                # P2
+                for ch in self.iter_text():
+
+                    if upper_is_rtl and ch.isupper():
+                        self._base_level = PARAGRAPH_LEVELS['R']
+                        break
+
+                    self._base_level = PARAGRAPH_LEVELS.get(bidirectional(ch))
+
+                    if self._base_level is not None:
+                        break
+
+                # P3
+                if self._base_level is None:
+                    self._base_level = PARAGRAPH_LEVELS['L']
+
+        return self._base_level
 
 
 # Some definitions
-PARAGRAPH_LEVELS = { 'L':0, 'AL':1, 'R': 1 }
 EXPLICIT_LEVEL_LIMIT = 62
 
 _LEAST_GREATER_ODD = lambda x: (x + 1) | 1
