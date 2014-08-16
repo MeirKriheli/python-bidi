@@ -292,6 +292,37 @@ class BidiLayout(object):
         elif self.overflow_isolate_count == 0:
             self.overflow_embedding_count += 1
 
+    def X5a(self, idx):
+        """Implements X5a_
+
+        With each RLI, perform the following steps:
+
+        * Set the RLI’s embedding level to the embedding level of the last
+          entry on the directional status stack.
+        * Compute the least odd embedding level greater than the embedding
+          level of the last entry on the directional status stack.
+        * If this new level would be valid and the overflow isolate count and
+          the overflow embedding count are both zero, then this RLI is valid.
+          Increment the valid isolate count by one, and push an entry
+          consisting of the new embedding level, neutral directional override
+          status, and true directional isolate status onto the directional
+          status stack.
+        * Otherwise, this is an overflow RLI. Increment the overflow isolate
+          count by one, and leave all other variables unchanged.
+
+        .. _X5a: http://www.unicode.org/reports/tr9/#X5a
+        """
+        self.chars[idx]['level'] = self.last_level_entry.embedding_level
+
+        level = least_greater_odd(self.last_level_entry.embedding_level)
+        if (level <= MAX_DEPTH and self.overflow_isolate_count == 0
+                and self.overflow_embedding_count == 0):
+            self.last_level_entry = LevelEntry(level, 'N', True)
+            self.levels_stack.append(self.last_level_entry)
+            self.valid_isolate_count += 1
+        else:
+            self.overflow_isolate_count += 1
+
     def explicit_levels_and_directions(self):
 
         MAPPINGS = {
