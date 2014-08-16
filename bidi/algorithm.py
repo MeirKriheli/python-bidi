@@ -14,30 +14,47 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Copyright (C) 2008-2010 Yaacov Zamir <kzamir_a_walla.co.il>,
-# Meir kriheli <meir@mksoft.co.il>
+# 2010-2014 Meir kriheli <meir@mksoft.co.il>
 "bidirectional alogrithm implementation"
 import sys
 
 import inspect
-from collections import deque
+from collections import deque, namedtuple
 from unicodedata import bidirectional, mirrored
 import six
 
 from .mirror import MIRRORED
+from .helpers import least_greater_even, least_greater_odd
 from .definitions import (PARAGRAPH_LEVELS, IS_UCS2, SURROGATE_MIN,
-                          SURROGATE_MAX, ISOLATE_INITIATORS)
+                          SURROGATE_MAX, ISOLATE_INITIATORS, MAX_DEPTH)
+
+
+LevelEntry = namedtuple(
+    'LevelEntry',
+    ['embedding_level', 'directional_override', 'directional_isolate']
+)
 
 
 class BidiLayout(object):
+
     def __init__(self, unistr, base_dir=None, upper_is_rtl=False, debug=False):
         self.text = unistr
         self.upper_is_rtl = upper_is_rtl
         self.base_dir = base_dir
         self._base_level = None
         self.debug = debug
+        self._display = None
 
         self.chars = deque()
-        self.prepare_chars()
+
+        # for embedded levels
+        self.levels_stack = None  # will be set to a stack in X1
+        self.overflow_isolate_count = 0
+        self.overflow_embedding_count = 0
+        self.valid_isolate_count = 0
+        self.last_level_entry = None
+
+        self.prepare()
 
     def iter_text(self):
         "yield chars, takes into account surrogate pairs if needed"
@@ -58,6 +75,52 @@ class BidiLayout(object):
 
                 yield ch
 
+    def calc_paragraph_level(self):
+        """Applies P2 and P3.
+
+        P2_ :
+
+        In each paragraph, find the first character of type L, AL, or R while
+        skipping over any characters between an isolate initiator and its
+        matching PDI or, if it has no matching PDI, the end of the paragraph.
+
+        P3_ :
+
+        If a character is found in P2 and it is of type AL or R, then set the
+        paragraph embedding level to one; otherwise, set it to zero.
+
+        .. _P2: http://www.unicode.org/reports/tr9/#P2
+        .. _P3: http://www.unicode.org/reports/tr9/#P3
+        """
+        upper_is_rtl = self.upper_is_rtl
+        isolate_initiator_level = 0
+
+        for ch in self.iter_text():
+            bidi_type = bidirectional(ch)
+
+            if bidi_type in ISOLATE_INITIATORS:
+                isolate_initiator_level += 1
+                continue
+
+            if bidi_type == 'PDI' and isolate_initiator_level > 0:
+                isolate_initiator_level -= 1
+                continue
+
+            # ignore isolate initiators till it's matching PDI
+            if isolate_initiator_level > 0:
+                continue
+
+            if upper_is_rtl and ch.isupper():
+                bidi_type = 'R'
+
+            self._base_level = PARAGRAPH_LEVELS.get(bidi_type)
+
+            if self._base_level is not None:
+                break
+
+        if self._base_level is None:
+            self._base_level = PARAGRAPH_LEVELS['L']
+
     @property
     def base_level(self):
         """Get the paragraph base embedding level. Returns 0 for LTR,
@@ -75,44 +138,138 @@ class BidiLayout(object):
 
             if self.base_dir is not None:
                 self._base_level = PARAGRAPH_LEVELS[self.base_dir]
-
             else:
-                upper_is_rtl = self.upper_is_rtl
-                isolate_initiator_level = 0
-
-                # P2
-                for ch in self.iter_text():
-                    bidi_type = bidirectional(ch)
-
-                    if bidi_type in ISOLATE_INITIATORS:
-                        isolate_initiator_level += 1
-                        continue
-
-                    if bidi_type == 'PDI' and isolate_initiator_level > 0:
-                        isolate_initiator_level -= 1
-                        continue
-
-                    # ignore isolate initiators till it's matching PDI
-                    if isolate_initiator_level > 0:
-                        continue
-
-                    if upper_is_rtl and ch.isupper():
-                        self._base_level = PARAGRAPH_LEVELS['R']
-                        break
-
-                    self._base_level = PARAGRAPH_LEVELS.get(bidi_type)
-
-                    if self._base_level is not None:
-                        break
-
-                # P3
-                if self._base_level is None:
-                    self._base_level = PARAGRAPH_LEVELS['L']
+                self.calc_paragraph_level()
 
         return self._base_level
 
-    def prepare_chars(self):
+    def prepare(self):
         """Setup the initial chars and their attributes"""
+
+        base_level = self.base_level
+        upper_is_rtl = self.upper_is_rtl
+
+        for ch in self.iter_text():
+            if upper_is_rtl and ch.isupper():
+                bidi_type = 'R'
+            else:
+                bidi_type = bidirectional(ch)
+
+            self.chars.append({
+                'ch': ch,
+                'level': base_level,
+                'type': bidi_type,
+                'orig': bidi_type,
+            })
+
+    def X1(self):
+        """Applies X1_:
+
+        * Set the stack to empty.
+        * Push onto the stack an entry consisting of the paragraph embedding
+          level, a neutral directional override status, and a false directional
+          isolate status.
+        * Set the overflow isolate count to zero.
+        * Set the overflow embedding count to zero.
+        * Set the valid isolate count to zero.
+
+        .. _X1: http://www.unicode.org/reports/tr9/#X1
+        """
+
+        self.last_level_entry = LevelEntry(self.base_level, 'N', False)
+        self.levels_stack = deque([self.last_level_entry])
+        self.overflow_isolate_count = 0
+        self.overflow_embedding_count = 0
+        self.valid_isolate_count = 0
+
+    def X2(self, idx):
+        """X2_ implementation
+
+        With each RLE, perform the following steps:
+
+        * Compute the least odd embedding level greater than the embedding
+          level of the last entry on the directional status stack.
+        * If this new level would be valid, and the overflow isolate count and
+          overflow embedding count are both zero, then this RLE is valid. Push
+          an entry consisting of the new embedding level, neutral directional
+          override status, and false directional isolate status onto the
+          directional status stack.
+        * Otherwise, this is an overflow RLE. If the overflow isolate count is
+          zero, increment the overflow embedding count by one. Leave all other
+          variables unchanged.
+
+        .. _X2: http://www.unicode.org/reports/tr9/#X2
+        """
+
+        level = least_greater_odd(self.last_level_entry.embedding_level)
+
+        if (level <= MAX_DEPTH and self.overflow_isolate_count == 0
+                and self.overflow_embedding_count == 0):
+            self.last_level_entry = LevelEntry(level, 'N', False)
+            self.levels_stack.append(self.last_level_entry)
+        elif self.overflow_isolate_count == 0:
+            self.overflow_embedding_count += 1
+
+    def X3(self, idx):
+        """X3_ implementation:
+
+        With each LRE, perform the following steps:
+
+        * Compute the least even embedding level greater than the embedding
+          level of the last entry on the directional status stack.
+        * If this new level would be valid, and the overflow isolate count and
+          overflow embedding count are both zero, then this LRE is valid. Push
+          an entry consisting of the new embedding level, neutral directional
+          override status, and false directional isolate status onto the
+          directional status stack.
+        * Otherwise, this is an overflow LRE. If the overflow isolate count is
+          zero, increment the overflow embedding count by one. Leave all other
+          variables unchanged.
+
+        .. _X3: http://www.unicode.org/reports/tr9/#X3
+        """
+
+        level = least_greater_even(self.last_level_entry.embedding_level)
+
+        if (level <= MAX_DEPTH and self.overflow_isolate_count == 0
+                and self.overflow_embedding_count == 0):
+            self.last_level_entry = LevelEntry(level, 'N', False)
+            self.levels_stack.append(self.last_level_entry)
+        elif self.overflow_isolate_count == 0:
+            self.overflow_embedding_count += 1
+
+    def explicit_levels_and_directions(self):
+
+        MAPPINGS = {
+            'RLE': self.X2,
+            'LRE': self.X3,
+            'RLO': self.X4,
+            'LRO': self.X5,
+            'RLI': self.X5a,
+            'LRI': self.X5b,
+            'FSI': self.X5c,
+            'PDI': self.X6a,
+            'PDF': self.X7,
+        }
+        self.X1()
+
+        for idx, ch in enumerate(self.chars):
+            ch_type = ch['type']
+            method = MAPPINGS.get(ch_type)
+
+            if method:
+                method(idx)
+            else:
+                if ch_type not in ('BN', 'B'):
+                    self.X6(ch)
+
+    @property
+    def display(self):
+
+        if self._display is None:
+            pass
+
+        return self._display
 
 
 # Some definitions
@@ -132,10 +289,11 @@ X2_X5_MAPPINGS = {
 X6_IGNORED = list(X2_X5_MAPPINGS.keys()) + ['BN', 'PDF', 'B']
 X9_REMOVED = list(X2_X5_MAPPINGS.keys()) + ['BN', 'PDF']
 
-_embedding_direction = lambda x:('L', 'R')[x % 2]
+_embedding_direction = lambda x: ('L', 'R')[x % 2]
 
 _IS_UCS2 = sys.maxunicode == 65535
-_SURROGATE_MIN, _SURROGATE_MAX = 55296, 56319 # D800, DBFF
+_SURROGATE_MIN, _SURROGATE_MAX = 55296, 56319  # D800, DBFF
+
 
 def debug_storage(storage, base_info=False, chars=True, runs=False):
     "Display debug information for the storage"
@@ -224,6 +382,7 @@ def get_base_level(text, upper_is_rtl=False):
 
     return base_level
 
+
 def get_embedding_levels(text, storage, upper_is_rtl=False, debug=False):
     """Get the paragraph base embedding level and direction,
     set the storage to the array of chars"""
@@ -244,10 +403,11 @@ def get_embedding_levels(text, storage, upper_is_rtl=False, debug=False):
             bidi_type = 'R'
         else:
             bidi_type = bidirectional(_ch)
-        storage['chars'].append({'ch':_ch, 'level':base_level, 'type':bidi_type,
-                                 'orig':bidi_type})
+        storage['chars'].append(
+            {'ch': _ch, 'level': base_level, 'type': bidi_type, 'orig': bidi_type})
     if debug:
         debug_storage(storage, base_info=True)
+
 
 def explicit_embed_and_overrides(storage, debug=False):
     """Apply X1 to X9 rules of the unicode algorithm.
@@ -259,7 +419,7 @@ def explicit_embed_and_overrides(storage, debug=False):
     directional_override = 'N'
     levels = deque()
 
-    #X1
+    # X1
     embedding_level = storage['base_level']
 
     for _ch in storage['chars']:
@@ -277,10 +437,10 @@ def explicit_embed_and_overrides(storage, debug=False):
 
             new_level = level_func(embedding_level)
             if new_level < EXPLICIT_LEVEL_LIMIT:
-                levels.append( (embedding_level, directional_override) )
+                levels.append((embedding_level, directional_override))
                 embedding_level, directional_override = new_level, override
 
-            elif embedding_level == EXPLICIT_LEVEL_LIMIT -2:
+            elif embedding_level == EXPLICIT_LEVEL_LIMIT - 2:
                 # The new level is invalid, but a valid level can still be
                 # achieved if this level is 60 and we encounter an RLE or
                 # RLO further on.  So record that we 'almost' overflowed.
@@ -312,12 +472,12 @@ def explicit_embed_and_overrides(storage, debug=False):
                 embedding_level = _ch['level'] = storage['base_level']
                 directional_override = 'N'
 
-    #Removes the explicit embeds and overrides of types
-    #RLE, LRE, RLO, LRO, PDF, and BN. Adjusts extended chars
-    #next and prev as well
+    # Removes the explicit embeds and overrides of types
+    # RLE, LRE, RLO, LRO, PDF, and BN. Adjusts extended chars
+    # next and prev as well
 
-    #Applies X9. See http://unicode.org/reports/tr9/#X9
-    storage['chars'] = [_ch for _ch in storage['chars']\
+    # Applies X9. See http://unicode.org/reports/tr9/#X9
+    storage['chars'] = [_ch for _ch in storage['chars']
                         if _ch['type'] not in X9_REMOVED]
 
     calc_level_runs(storage)
@@ -325,19 +485,20 @@ def explicit_embed_and_overrides(storage, debug=False):
     if debug:
         debug_storage(storage, runs=True)
 
+
 def calc_level_runs(storage):
     """Split the storage to run of char types at the same level.
 
     Applies X10. See http://unicode.org/reports/tr9/#X10
     """
-    #run level depends on the higher of the two levels on either side of
-    #the boundary If the higher level is odd, the type is R; otherwise,
+    # run level depends on the higher of the two levels on either side of
+    # the boundary If the higher level is odd, the type is R; otherwise,
     #it is L
 
     storage['runs'].clear()
     chars = storage['chars']
 
-    #empty string ?
+    # empty string ?
     if not chars:
         return
 
@@ -359,8 +520,8 @@ def calc_level_runs(storage):
             run_length += 1
         else:
             eor = calc_level_run(prev_level, curr_level)
-            storage['runs'].append({'sor':sor, 'eor':eor, 'start':run_start,
-                            'type': prev_type,'length': run_length})
+            storage['runs'].append({'sor': sor, 'eor': eor, 'start': run_start,
+                                    'type': prev_type, 'length': run_length})
             sor = eor
             run_start += run_length
             run_length = 1
@@ -369,8 +530,9 @@ def calc_level_runs(storage):
 
     # for the last char/runlevel
     eor = calc_level_run(curr_level, storage['base_level'])
-    storage['runs'].append({'sor':sor, 'eor':eor, 'start':run_start,
-                            'type':curr_type, 'length': run_length})
+    storage['runs'].append({'sor': sor, 'eor': eor, 'start': run_start,
+                            'type': curr_type, 'length': run_length})
+
 
 def resolve_weak_types(storage, debug=False):
     """Reslove weak type rules W1 - W3.
@@ -413,7 +575,7 @@ def resolve_weak_types(storage, debug=False):
         # W4. A single European separator between two European numbers changes
         # to a European number. A single common separator between two numbers of
         # the same type changes to that type.
-        for idx in range(1, len(chars) -1 ):
+        for idx in range(1, len(chars) - 1):
             bidi_type = chars[idx]['type']
             prev_type = chars[idx-1]['type']
             next_type = chars[idx+1]['type']
@@ -422,9 +584,8 @@ def resolve_weak_types(storage, debug=False):
                 chars[idx]['type'] = 'EN'
 
             if bidi_type == 'CS' and prev_type == next_type and \
-                       prev_type in ('AN', 'EN'):
+                    prev_type in ('AN', 'EN'):
                 chars[idx]['type'] = prev_type
-
 
         # W5. A sequence of European terminators adjacent to European numbers
         # changes to all European numbers.
@@ -460,6 +621,7 @@ def resolve_weak_types(storage, debug=False):
     if debug:
         debug_storage(storage, runs=True)
 
+
 def resolve_neutral_types(storage, debug):
     """Resolving neutral types. Implements N1 and N2
 
@@ -470,8 +632,8 @@ def resolve_neutral_types(storage, debug):
     for run in storage['runs']:
         start, length = run['start'], run['length']
         # use sor and eor
-        chars = [{'type':run['sor']}] + storage['chars'][start:start+length] +\
-                [{'type':run['eor']}]
+        chars = [{'type': run['sor']}] + storage['chars'][start:start+length] +\
+                [{'type': run['eor']}]
         total_chars = len(chars)
 
         seq_start = None
@@ -514,6 +676,7 @@ def resolve_neutral_types(storage, debug):
     if debug:
         debug_storage(storage)
 
+
 def resolve_implicit_levels(storage, debug):
     """Resolving implicit levels (I1, I2)
 
@@ -527,7 +690,7 @@ def resolve_implicit_levels(storage, debug):
         for _ch in chars:
             # only those types are allowed at this stage
             assert _ch['type'] in ('L', 'R', 'EN', 'AN'),\
-                    '%s not allowed here' % _ch['type']
+                '%s not allowed here' % _ch['type']
 
             if _embedding_direction(_ch['level']) == 'L':
                 # I1. For all characters with an even (left-to-right) embedding
@@ -545,6 +708,7 @@ def resolve_implicit_levels(storage, debug):
 
     if debug:
         debug_storage(storage, runs=True)
+
 
 def reverse_contiguous_sequence(chars, line_start, line_end, highest_level,
                                 lowest_odd_level):
@@ -568,7 +732,7 @@ def reverse_contiguous_sequence(chars, line_start, line_end, highest_level,
             else:
                 if _end:
                     chars[_start:+_end+1] = \
-                            reversed(chars[_start:+_end+1])
+                        reversed(chars[_start:+_end+1])
                     _start = _end = None
 
         # anything remaining ?
@@ -622,7 +786,7 @@ def reorder_resolved_levels(storage, debug):
         if char_level % 2 and char_level < lowest_odd_level:
             lowest_odd_level = char_level
 
-        if _ch['orig'] == 'B' or idx == max_len -1:
+        if _ch['orig'] == 'B' or idx == max_len - 1:
             line_end = idx
             # omit line breaks
             if _ch['orig'] == 'B':
@@ -652,19 +816,20 @@ def apply_mirroring(storage, debug):
     for _ch in storage['chars']:
         unichar = _ch['ch']
         if mirrored(unichar) and \
-                     _embedding_direction(_ch['level']) == 'R':
+                _embedding_direction(_ch['level']) == 'R':
             _ch['ch'] = MIRRORED.get(unichar, unichar)
 
     if debug:
         debug_storage(storage)
 
+
 def get_empty_storage():
     """Return an empty storage skeleton, usable for testing"""
     return {
         'base_level': None,
-        'base_dir' : None,
+        'base_dir': None,
         'chars': [],
-        'runs' : deque(),
+        'runs': deque(),
     }
 
 
