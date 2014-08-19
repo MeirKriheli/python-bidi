@@ -19,14 +19,16 @@
 import sys
 
 import inspect
-from collections import deque, namedtuple
-from unicodedata import bidirectional, mirrored
 import six
+from collections import deque, namedtuple
+from itertools import islice
+from operator import itemgetter
+from unicodedata import bidirectional, mirrored
 
-from .mirror import MIRRORED
-from .helpers import least_greater_even, least_greater_odd
 from .definitions import (PARAGRAPH_LEVELS, IS_UCS2, SURROGATE_MIN,
                           SURROGATE_MAX, ISOLATE_INITIATORS, MAX_DEPTH)
+from .helpers import least_greater_even, least_greater_odd
+from .mirror import MIRRORED
 
 
 LevelEntry = namedtuple(
@@ -75,7 +77,7 @@ class BidiLayout(object):
 
                 yield ch
 
-    def calc_paragraph_level(self):
+    def calc_paragraph_level(self, chars=None):
         """Applies P2 and P3.
 
         P2_ :
@@ -95,7 +97,11 @@ class BidiLayout(object):
         upper_is_rtl = self.upper_is_rtl
         isolate_initiator_level = 0
 
-        for ch in self.iter_text():
+        if chars is None:
+            chars = self.chars
+
+        getter = itemgetter('ch')
+        for ch in map(getter, chars):
             bidi_type = bidirectional(ch)
 
             if bidi_type in ISOLATE_INITIATORS:
@@ -113,13 +119,15 @@ class BidiLayout(object):
             if upper_is_rtl and ch.isupper():
                 bidi_type = 'R'
 
-            self._base_level = PARAGRAPH_LEVELS.get(bidi_type)
+            base_level = PARAGRAPH_LEVELS.get(bidi_type)
 
-            if self._base_level is not None:
+            if base_level is not None:
                 break
 
-        if self._base_level is None:
-            self._base_level = PARAGRAPH_LEVELS['L']
+        if base_level is None:
+            base_level = PARAGRAPH_LEVELS['L']
+
+        return base_level
 
     @property
     def base_level(self):
@@ -139,15 +147,16 @@ class BidiLayout(object):
             if self.base_dir is not None:
                 self._base_level = PARAGRAPH_LEVELS[self.base_dir]
             else:
-                self.calc_paragraph_level()
+                self._base_level = self.calc_paragraph_level()
 
         return self._base_level
 
     def prepare(self):
         """Setup the initial chars and their attributes"""
 
-        base_level = self.base_level
         upper_is_rtl = self.upper_is_rtl
+
+        self.chars.clear()
 
         for ch in self.iter_text():
             if upper_is_rtl and ch.isupper():
@@ -157,7 +166,7 @@ class BidiLayout(object):
 
             self.chars.append({
                 'ch': ch,
-                'level': base_level,
+                'level': None,
                 'type': bidi_type,
                 'orig': bidi_type,
             })
@@ -314,6 +323,7 @@ class BidiLayout(object):
 
         .. _X5a: http://www.unicode.org/reports/tr9/#X5a
         """
+
         self.chars[idx]['level'] = self.last_level_entry.embedding_level
 
         level = least_greater_odd(self.last_level_entry.embedding_level)
@@ -322,6 +332,55 @@ class BidiLayout(object):
             self.push_levels_entry(LevelEntry(level, 'N', True))
         else:
             self.overflow_isolate_count += 1
+
+    def X5b(self, idx):
+        """Implements X5b_
+
+        With each LRI, perform the following steps:
+
+        * Set the LRI’s embedding level to the embedding level of the last
+          entry on the directional status stack.
+        * Compute the least even embedding level greater than the embedding
+          level of the last entry on the directional status stack.
+        * If this new level would be valid and the overflow isolate count and
+          the overflow embedding count are both zero, then this LRI is valid.
+          Increment the valid isolate count by one, and push an entry
+          consisting of the new embedding level, neutral directional override
+          status, and true directional isolate status onto the directional
+          status stack.
+        * Otherwise, this is an overflow LRI. Increment the overflow isolate
+          count by one, and leave all other variables unchanged
+
+        .. _X5b: http://www.unicode.org/reports/tr9/#X5b
+        """
+
+        self.chars[idx]['level'] = self.last_level_entry.embedding_level
+
+        level = least_greater_even(self.last_level_entry.embedding_level)
+        if self.is_valid_level_and_counters(level):
+            self.valid_isolate_count += 1
+            self.push_levels_entry(LevelEntry(level, 'N', True))
+        else:
+            self.overflow_isolate_count += 1
+
+    def X5c(self, idx):
+        """Implements X5c_
+
+        With each FSI, apply rules P2 and P3 to the sequence of characters
+        between the FSI and its matching PDI, or if there is no matching PDI,
+        the end of the paragraph, as if this sequence of characters were a
+        paragraph. If these rules decide on paragraph embedding level 1, treat
+        the FSI as an RLI in rule X5a. Otherwise, treat it as an LRI in rule
+        X5b.
+
+        .. _X5c: http://www.unicode.org/reports/tr9/#X5c
+        """
+        level = self.calc_paragraph_level(islice(self.chars, 1, None))
+
+        if level == PARAGRAPH_LEVELS['R']:
+            self.X5a(idx)
+        else:
+            self.X5b(idx)
 
     def explicit_levels_and_directions(self):
 
