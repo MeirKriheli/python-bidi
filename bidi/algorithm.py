@@ -26,7 +26,8 @@ from operator import itemgetter
 from unicodedata import bidirectional, mirrored
 
 from .definitions import (PARAGRAPH_LEVELS, IS_UCS2, SURROGATE_MIN,
-                          SURROGATE_MAX, ISOLATE_INITIATORS, MAX_DEPTH)
+                          SURROGATE_MAX, ISOLATE_INITIATORS, MAX_DEPTH,
+                          X9_REMOVED)
 from .helpers import least_greater_even, least_greater_odd
 from .mirror import MIRRORED
 
@@ -488,6 +489,7 @@ class BidiLayout(object):
                 self.pop_levels_entry()
 
     def explicit_levels_and_directions(self):
+        "Applies X1-X7 (No X8 since we're handling single paragraphs)"
 
         MAPPINGS = {
             'RLE': self.X2,
@@ -511,6 +513,15 @@ class BidiLayout(object):
             else:
                 if ch_type not in ('BN', 'B'):
                     self.X6(idx)
+
+    def X9(self):
+        filtered = (ch for ch in self.chars if ch['type'] not in X9_REMOVED)
+        self.chars = deque(filtered)
+
+    def preparations_for_implicit_processing(self):
+        "Applies X9-X10"
+
+        self.X9()
 
     @property
     def display(self):
@@ -536,7 +547,6 @@ X2_X5_MAPPINGS = {
 
 # Added 'B' so X6 won't execute in that case and X8 will run it's course
 X6_IGNORED = list(X2_X5_MAPPINGS.keys()) + ['BN', 'PDF', 'B']
-X9_REMOVED = list(X2_X5_MAPPINGS.keys()) + ['BN', 'PDF']
 
 _embedding_direction = lambda x: ('L', 'R')[x % 2]
 
