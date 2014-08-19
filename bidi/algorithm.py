@@ -455,6 +455,38 @@ class BidiLayout(object):
 
         self.chars[idx]['level'] = self.last_level_entry.embedding_level
 
+    def X7(self, idx):
+        """X7_, With each PDF, perform the following steps:
+
+        * If the overflow isolate count is greater than zero, do nothing. (This
+          PDF is within the scope of an overflow isolate initiator. It either
+          matches and terminates the scope of an overflow embedding initiator
+          within that overflow isolate, or does not match any embedding
+          initiator.)
+        * Otherwise, if the overflow embedding count is greater than zero,
+          decrement it by one. (This PDF matches and terminates the scope of an
+          overflow embedding initiator that is not within the scope of an
+          overflow isolate initiator.)
+        * Otherwise, if the directional isolate status of the last entry on the
+          directional status stack is false, and the directional status stack
+          contains at least two entries, pop the last entry from the
+          directional status stack. (This PDF matches and terminates the scope
+          of a valid embedding initiator. Since the stack has at least two
+          entries, this pop does not leave the stack empty.)
+        * Otherwise, do nothing. (This PDF does not match any embedding
+          initiator.)
+
+        .. _X7: http://www.unicode.org/reports/tr9/#X7
+        """
+
+        if self.overflow_isolate_count == 0:
+
+            if self.overflow_embedding_count > 0:
+                self.overflow_embedding_count -= 1
+            elif (not self.last_level_entry.directional_isolate
+                  and len(self.levels_stack) > 1):
+                self.pop_levels_entry()
+
     def explicit_levels_and_directions(self):
 
         MAPPINGS = {
@@ -478,7 +510,7 @@ class BidiLayout(object):
                 method(idx)
             else:
                 if ch_type not in ('BN', 'B'):
-                    self.X6(ch)
+                    self.X6(idx)
 
     @property
     def display(self):
