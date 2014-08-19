@@ -201,9 +201,7 @@ class BidiLayout(object):
         self.valid_isolate_count = 0
 
     def X2(self, idx):
-        """X2_ implementation
-
-        With each RLE, perform the following steps:
+        """X2_: With each RLE, perform the following steps:
 
         * Compute the least odd embedding level greater than the embedding
           level of the last entry on the directional status stack.
@@ -227,9 +225,7 @@ class BidiLayout(object):
             self.overflow_embedding_count += 1
 
     def X3(self, idx):
-        """X3_ implementation:
-
-        With each LRE, perform the following steps:
+        """X3_: With each LRE, perform the following steps:
 
         * Compute the least even embedding level greater than the embedding
           level of the last entry on the directional status stack.
@@ -253,9 +249,7 @@ class BidiLayout(object):
             self.overflow_embedding_count += 1
 
     def X4(self, idx):
-        """X4_ implementation:
-
-        With each RLO, perform the following steps:
+        """X4_: With each RLO, perform the following steps:
 
         * Compute the least odd embedding level greater than the embedding
           level of the last entry on the directional status stack.
@@ -279,9 +273,7 @@ class BidiLayout(object):
             self.overflow_embedding_count += 1
 
     def X5(self, idx):
-        """X5_ implementation:
-
-        With each LRO, perform the following steps:
+        """X5_: With each LRO, perform the following steps:
 
         * Compute the least even embedding level greater than the embedding
           level of the last entry on the directional status stack.
@@ -304,9 +296,7 @@ class BidiLayout(object):
             self.overflow_embedding_count += 1
 
     def X5a(self, idx):
-        """Implements X5a_
-
-        With each RLI, perform the following steps:
+        """X5a_: With each RLI, perform the following steps:
 
         * Set the RLI’s embedding level to the embedding level of the last
           entry on the directional status stack.
@@ -334,9 +324,7 @@ class BidiLayout(object):
             self.overflow_isolate_count += 1
 
     def X5b(self, idx):
-        """Implements X5b_
-
-        With each LRI, perform the following steps:
+        """X5b_: With each LRI, perform the following steps:
 
         * Set the LRI’s embedding level to the embedding level of the last
           entry on the directional status stack.
@@ -364,14 +352,13 @@ class BidiLayout(object):
             self.overflow_isolate_count += 1
 
     def X5c(self, idx):
-        """Implements X5c_
+        """X5c_: With each FSI:
 
-        With each FSI, apply rules P2 and P3 to the sequence of characters
-        between the FSI and its matching PDI, or if there is no matching PDI,
-        the end of the paragraph, as if this sequence of characters were a
-        paragraph. If these rules decide on paragraph embedding level 1, treat
-        the FSI as an RLI in rule X5a. Otherwise, treat it as an LRI in rule
-        X5b.
+        Apply rules P2 and P3 to the sequence of characters between the FSI and
+        its matching PDI, or if there is no matching PDI, the end of the
+        paragraph, as if this sequence of characters were a paragraph. If these
+        rules decide on paragraph embedding level 1, treat the FSI as an RLI in
+        rule X5a. Otherwise, treat it as an LRI in rule X5b.
 
         .. _X5c: http://www.unicode.org/reports/tr9/#X5c
         """
