@@ -176,6 +176,13 @@ class BidiLayout(object):
         self.last_level_entry = entry
         self.levels_stack.append(entry)
 
+    def pop_levels_entry(self):
+        "Pops level entry, updates last_level_entry"
+        stack = self.levels_stack
+        entry = stack.pop()
+        self.last_level_entry = stack[-1]
+        return entry
+
     def is_valid_level_and_counters(self, level):
         return (level <= MAX_DEPTH and self.overflow_isolate_count == 0
                 and self.overflow_embedding_count == 0)
@@ -390,6 +397,63 @@ class BidiLayout(object):
 
         if last_entry.directional_override != 'N':
             ch['type'] = last_entry.directional_override
+
+    def X6a(self, idx):
+        """X6a_, With each PDI, perform the following steps :
+
+
+        * If the overflow isolate count is greater than zero, this PDI matches
+          an overflow isolate initiator. Decrement the overflow isolate count
+          by one.
+        * Otherwise, if the valid isolate count is zero, this PDI does not
+          match any isolate initiator, valid or overflow. Do nothing.
+        * Otherwise, this PDI matches a valid isolate initiator. Perform the
+          following steps:
+
+            * Reset the overflow embedding count to zero. (This terminates the
+              scope of those overflow embedding initiators within the scope of
+              the matched isolate initiator whose scopes have not been
+              terminated by a matching PDF, and which thus lack a matching
+              PDF.)
+            * While the directional isolate status of the last entry on the
+              stack is false, pop the last entry from the directional status
+              stack. (This terminates the scope of those valid embedding
+              initiators within the scope of the matched isolate initiator
+              whose scopes have not been terminated by a matching PDF, and
+              which thus lack a matching PDF. Given that the valid isolate
+              count is non-zero, the directional status stack must contain an
+              entry with directional isolate status true before this step, and
+              thus after this step the last entry on the stack will indeed have
+              a true directional isolate status, i.e. represent the scope of
+              the matched isolate initiator. This cannot be the stack's first
+              entry, which always belongs to the paragraph level and has a
+              false directional status, so there is at least one more entry
+              before it on the stack.)
+            * Pop the last entry from the directional status stack and
+              decrement the valid isolate count by one. (This terminates the
+              scope of the matched isolate initiator. Since the preceding step
+              left the stack with at least two entries, this pop does not leave
+              the stack empty.)
+
+        * In all cases, set the PDI’s level to the embedding level of the last
+          entry on the directional status stack left after the steps above.
+
+        .. _X6a: http://www.unicode.org/reports/tr9/#X6a
+        """
+
+        if self.overflow_isolate_count > 0:
+            self.overflow_isolate_count -= 1
+        else:
+            if self.valid_isolate_count != 0:
+                self.overflow_embedding_count = 0
+
+                while not self.last_level_entry.directional_isolate:
+                    self.pop_levels_entry()
+
+                self.pop_levels_entry()
+                self.valid_isolate_count -= 1
+
+        self.chars[idx]['level'] = self.last_level_entry.embedding_level
 
     def explicit_levels_and_directions(self):
 
