@@ -527,7 +527,8 @@ class BidiLayout(object):
     def display(self):
 
         if self._display is None:
-            pass
+            self.explicit_levels_and_directions()
+            self.preparations_for_implicit_processing()
 
         return self._display
 
