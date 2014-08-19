@@ -181,7 +181,7 @@ class BidiLayout(object):
                 and self.overflow_embedding_count == 0)
 
     def X1(self):
-        """Applies X1_:
+        """X1_:
 
         * Set the stack to empty.
         * Push onto the stack an entry consisting of the paragraph embedding
@@ -201,7 +201,7 @@ class BidiLayout(object):
         self.valid_isolate_count = 0
 
     def X2(self, idx):
-        """X2_: With each RLE, perform the following steps:
+        """X2_, With each RLE, perform the following steps:
 
         * Compute the least odd embedding level greater than the embedding
           level of the last entry on the directional status stack.
@@ -225,7 +225,7 @@ class BidiLayout(object):
             self.overflow_embedding_count += 1
 
     def X3(self, idx):
-        """X3_: With each LRE, perform the following steps:
+        """X3_, With each LRE, perform the following steps:
 
         * Compute the least even embedding level greater than the embedding
           level of the last entry on the directional status stack.
@@ -249,7 +249,7 @@ class BidiLayout(object):
             self.overflow_embedding_count += 1
 
     def X4(self, idx):
-        """X4_: With each RLO, perform the following steps:
+        """X4_, With each RLO, perform the following steps:
 
         * Compute the least odd embedding level greater than the embedding
           level of the last entry on the directional status stack.
@@ -273,7 +273,7 @@ class BidiLayout(object):
             self.overflow_embedding_count += 1
 
     def X5(self, idx):
-        """X5_: With each LRO, perform the following steps:
+        """X5_, With each LRO, perform the following steps:
 
         * Compute the least even embedding level greater than the embedding
           level of the last entry on the directional status stack.
@@ -296,7 +296,7 @@ class BidiLayout(object):
             self.overflow_embedding_count += 1
 
     def X5a(self, idx):
-        """X5a_: With each RLI, perform the following steps:
+        """X5a_, With each RLI, perform the following steps:
 
         * Set the RLI’s embedding level to the embedding level of the last
           entry on the directional status stack.
@@ -324,7 +324,7 @@ class BidiLayout(object):
             self.overflow_isolate_count += 1
 
     def X5b(self, idx):
-        """X5b_: With each LRI, perform the following steps:
+        """X5b_, With each LRI, perform the following steps:
 
         * Set the LRI’s embedding level to the embedding level of the last
           entry on the directional status stack.
@@ -352,7 +352,7 @@ class BidiLayout(object):
             self.overflow_isolate_count += 1
 
     def X5c(self, idx):
-        """X5c_: With each FSI:
+        """X5c_, With each FSI:
 
         Apply rules P2 and P3 to the sequence of characters between the FSI and
         its matching PDI, or if there is no matching PDI, the end of the
@@ -368,6 +368,28 @@ class BidiLayout(object):
             self.X5a(idx)
         else:
             self.X5b(idx)
+
+    def X6(self, idx):
+        """X6_, For all types besides B, BN, RLE, LRE, RLO, LRO, PDF, RLI, LRI,
+        FSI, and PDI:
+
+        * Set the current character’s embedding level to the embedding level of
+          the last entry on the directional status stack.
+        * Whenever the directional override status of the last entry on the
+          directional status stack is not neutral, reset the current character
+          type according to the directional override status of the last entry
+          on the directional status stack.
+
+        .. _X6: http://www.unicode.org/reports/tr9/#X6
+        """
+
+        last_entry = self.last_level_entry
+        ch = self.chars[idx]
+
+        ch['level'] = last_entry.embedding_level
+
+        if last_entry.directional_override != 'N':
+            ch['type'] = last_entry.directional_override
 
     def explicit_levels_and_directions(self):
 
