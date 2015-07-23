@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # This file is part of python-bidi
 #
 # python-bidi is free software: you can redistribute it and/or modify
@@ -15,7 +16,10 @@
 
 # Copyright (C) 2008-2010 Yaacov Zamir <kzamir_a_walla.co.il>,
 # Meir kriheli <meir@mksoft.co.il>
-"""BiDi algorithm unit tests"""
+
+"""
+BiDi algorithm unit tests
+"""
 
 import unittest
 import six
@@ -23,7 +27,9 @@ from bidi.algorithm import get_display, get_empty_storage, get_embedding_levels
 
 
 class TestBidiAlgorithm(unittest.TestCase):
-    "Tests the bidi algorithm (based on GNU fribidi ones)"
+    """
+    Tests the bidi algorithm (based on GNU fribidi ones)
+    """
 
     def test_surrogate(self):
         """Test for storage and base levels in case of surrogate pairs"""
