@@ -68,7 +68,8 @@ def main():
         parser.error('option -b can be L or R')
 
     # allow unicode in sys.stdout.write
-    sys.stdout = codecs.getwriter(locale.getpreferredencoding())(sys.stdout)
+    if six.PY2:
+        sys.stdout = codecs.getwriter(locale.getpreferredencoding())(sys.stdout)
 
     if rest:
         lines = rest
@@ -82,4 +83,4 @@ def main():
         if not isinstance(display, six.text_type):
             display = display.decode(options.encoding)
 
-        sys.stdout.write(display)
+        six.print_(display, end='')
