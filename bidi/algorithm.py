@@ -27,11 +27,17 @@ from .mirror import MIRRORED
 
 
 # Some definitions
-PARAGRAPH_LEVELS = { 'L':0, 'AL':1, 'R': 1 }
+PARAGRAPH_LEVELS = {'L': 0, 'AL': 1, 'R': 1}
 EXPLICIT_LEVEL_LIMIT = 62
 
-_LEAST_GREATER_ODD = lambda x: (x + 1) | 1
-_LEAST_GREATER_EVEN = lambda x: (x + 2) & ~1
+
+def _LEAST_GREATER_ODD(x):
+    return (x + 1) | 1
+
+
+def _LEAST_GREATER_EVEN(x):
+    return (x + 2) & ~1
+
 
 X2_X5_MAPPINGS = {
     'RLE': (_LEAST_GREATER_ODD, 'N'),
@@ -44,10 +50,14 @@ X2_X5_MAPPINGS = {
 X6_IGNORED = list(X2_X5_MAPPINGS.keys()) + ['BN', 'PDF', 'B']
 X9_REMOVED = list(X2_X5_MAPPINGS.keys()) + ['BN', 'PDF']
 
-_embedding_direction = lambda x:('L', 'R')[x % 2]
+
+def _embedding_direction(x):
+    return ('L', 'R')[x % 2]
+
 
 _IS_UCS2 = sys.maxunicode == 65535
-_SURROGATE_MIN, _SURROGATE_MAX = 55296, 56319 # D800, DBFF
+_SURROGATE_MIN, _SURROGATE_MAX = 55296, 56319  # D800, DBFF
+
 
 def debug_storage(storage, base_info=False, chars=True, runs=False):
     "Display debug information for the storage"
@@ -136,6 +146,7 @@ def get_base_level(text, upper_is_rtl=False):
 
     return base_level
 
+
 def get_embedding_levels(text, storage, upper_is_rtl=False, debug=False):
     """Get the paragraph base embedding level and direction,
     set the storage to the array of chars"""
@@ -156,10 +167,15 @@ def get_embedding_levels(text, storage, upper_is_rtl=False, debug=False):
             bidi_type = 'R'
         else:
             bidi_type = bidirectional(_ch)
-        storage['chars'].append({'ch':_ch, 'level':base_level, 'type':bidi_type,
-                                 'orig':bidi_type})
+            storage['chars'].append({
+                'ch': _ch,
+                'level': base_level,
+                'type': bidi_type,
+                'orig': bidi_type
+            })
     if debug:
         debug_storage(storage, base_info=True)
+
 
 def explicit_embed_and_overrides(storage, debug=False):
     """Apply X1 to X9 rules of the unicode algorithm.
@@ -171,7 +187,7 @@ def explicit_embed_and_overrides(storage, debug=False):
     directional_override = 'N'
     levels = deque()
 
-    #X1
+    # X1
     embedding_level = storage['base_level']
 
     for _ch in storage['chars']:
@@ -189,10 +205,10 @@ def explicit_embed_and_overrides(storage, debug=False):
 
             new_level = level_func(embedding_level)
             if new_level < EXPLICIT_LEVEL_LIMIT:
-                levels.append( (embedding_level, directional_override) )
+                levels.append((embedding_level, directional_override))
                 embedding_level, directional_override = new_level, override
 
-            elif embedding_level == EXPLICIT_LEVEL_LIMIT -2:
+            elif embedding_level == EXPLICIT_LEVEL_LIMIT - 2:
                 # The new level is invalid, but a valid level can still be
                 # achieved if this level is 60 and we encounter an RLE or
                 # RLO further on.  So record that we 'almost' overflowed.
@@ -224,12 +240,12 @@ def explicit_embed_and_overrides(storage, debug=False):
                 embedding_level = _ch['level'] = storage['base_level']
                 directional_override = 'N'
 
-    #Removes the explicit embeds and overrides of types
-    #RLE, LRE, RLO, LRO, PDF, and BN. Adjusts extended chars
-    #next and prev as well
+    # Removes the explicit embeds and overrides of types
+    # RLE, LRE, RLO, LRO, PDF, and BN. Adjusts extended chars
+    # next and prev as well
 
-    #Applies X9. See http://unicode.org/reports/tr9/#X9
-    storage['chars'] = [_ch for _ch in storage['chars']\
+    # Applies X9. See http://unicode.org/reports/tr9/#X9
+    storage['chars'] = [_ch for _ch in storage['chars']
                         if _ch['type'] not in X9_REMOVED]
 
     calc_level_runs(storage)
@@ -237,23 +253,25 @@ def explicit_embed_and_overrides(storage, debug=False):
     if debug:
         debug_storage(storage, runs=True)
 
+
 def calc_level_runs(storage):
     """Split the storage to run of char types at the same level.
 
     Applies X10. See http://unicode.org/reports/tr9/#X10
     """
-    #run level depends on the higher of the two levels on either side of
-    #the boundary If the higher level is odd, the type is R; otherwise,
-    #it is L
+    # run level depends on the higher of the two levels on either side of
+    # the boundary If the higher level is odd, the type is R; otherwise,
+    # it is L
 
     storage['runs'].clear()
     chars = storage['chars']
 
-    #empty string ?
+    # empty string ?
     if not chars:
         return
 
-    calc_level_run = lambda b_l, b_r: ['L', 'R'][max(b_l, b_r) % 2]
+    def calc_level_run(b_l, b_r):
+        return ['L', 'R'][max(b_l, b_r) % 2]
 
     first_char = chars[0]
 
@@ -271,8 +289,8 @@ def calc_level_runs(storage):
             run_length += 1
         else:
             eor = calc_level_run(prev_level, curr_level)
-            storage['runs'].append({'sor':sor, 'eor':eor, 'start':run_start,
-                            'type': prev_type,'length': run_length})
+            storage['runs'].append({'sor': sor, 'eor': eor, 'start': run_start,
+                                    'type': prev_type, 'length': run_length})
             sor = eor
             run_start += run_length
             run_length = 1
@@ -281,8 +299,9 @@ def calc_level_runs(storage):
 
     # for the last char/runlevel
     eor = calc_level_run(curr_level, storage['base_level'])
-    storage['runs'].append({'sor':sor, 'eor':eor, 'start':run_start,
-                            'type':curr_type, 'length': run_length})
+    storage['runs'].append({'sor': sor, 'eor': eor, 'start': run_start,
+                            'type': curr_type, 'length': run_length})
+
 
 def resolve_weak_types(storage, debug=False):
     """Reslove weak type rules W1 - W3.
@@ -325,7 +344,7 @@ def resolve_weak_types(storage, debug=False):
         # W4. A single European separator between two European numbers changes
         # to a European number. A single common separator between two numbers of
         # the same type changes to that type.
-        for idx in range(1, len(chars) -1 ):
+        for idx in range(1, len(chars) - 1):
             bidi_type = chars[idx]['type']
             prev_type = chars[idx-1]['type']
             next_type = chars[idx+1]['type']
@@ -334,9 +353,8 @@ def resolve_weak_types(storage, debug=False):
                 chars[idx]['type'] = 'EN'
 
             if bidi_type == 'CS' and prev_type == next_type and \
-                       prev_type in ('AN', 'EN'):
+                    prev_type in ('AN', 'EN'):
                 chars[idx]['type'] = prev_type
-
 
         # W5. A sequence of European terminators adjacent to European numbers
         # changes to all European numbers.
@@ -372,6 +390,7 @@ def resolve_weak_types(storage, debug=False):
     if debug:
         debug_storage(storage, runs=True)
 
+
 def resolve_neutral_types(storage, debug):
     """Resolving neutral types. Implements N1 and N2
 
@@ -382,8 +401,8 @@ def resolve_neutral_types(storage, debug):
     for run in storage['runs']:
         start, length = run['start'], run['length']
         # use sor and eor
-        chars = [{'type':run['sor']}] + storage['chars'][start:start+length] +\
-                [{'type':run['eor']}]
+        chars = [{'type': run['sor']}] + storage['chars'][start:start+length] +\
+                [{'type': run['eor']}]
         total_chars = len(chars)
 
         seq_start = None
@@ -426,6 +445,7 @@ def resolve_neutral_types(storage, debug):
     if debug:
         debug_storage(storage)
 
+
 def resolve_implicit_levels(storage, debug):
     """Resolving implicit levels (I1, I2)
 
@@ -457,6 +477,7 @@ def resolve_implicit_levels(storage, debug):
 
     if debug:
         debug_storage(storage, runs=True)
+
 
 def reverse_contiguous_sequence(chars, line_start, line_end, highest_level,
                                 lowest_odd_level):
@@ -534,7 +555,7 @@ def reorder_resolved_levels(storage, debug):
         if char_level % 2 and char_level < lowest_odd_level:
             lowest_odd_level = char_level
 
-        if _ch['orig'] == 'B' or idx == max_len -1:
+        if _ch['orig'] == 'B' or idx == max_len - 1:
             line_end = idx
             # omit line breaks
             if _ch['orig'] == 'B':
@@ -564,19 +585,20 @@ def apply_mirroring(storage, debug):
     for _ch in storage['chars']:
         unichar = _ch['ch']
         if mirrored(unichar) and \
-                     _embedding_direction(_ch['level']) == 'R':
+                _embedding_direction(_ch['level']) == 'R':
             _ch['ch'] = MIRRORED.get(unichar, unichar)
 
     if debug:
         debug_storage(storage)
 
+
 def get_empty_storage():
     """Return an empty storage skeleton, usable for testing"""
     return {
         'base_level': None,
-        'base_dir' : None,
+        'base_dir': None,
         'chars': [],
-        'runs' : deque(),
+        'runs': deque(),
     }
 
 
