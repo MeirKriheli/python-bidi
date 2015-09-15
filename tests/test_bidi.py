@@ -96,7 +96,7 @@ class TestBidiAlgorithm(unittest.TestCase):
             (u'HAS A _LPDF missing', u'PDF missing A SAH'),
             (u'AnD hOw_L AbOuT, 123,987 tHiS_o', u'w AbOuT, 123,987 tHiSOh DnA'),
             (u'a GOOD - _L_oTEST.', u'a TSET - DOOG.'),
-            (u'here_L is_o_o_o _R a good one_o', u'here is eno doog a'),
+            (u'here_L is_o_o_o _R a good one_o', u'here is eno doog a '),
             (u'THE _rbest _lONE and', u'best ENO and EHT'),
             (u'A REAL BIG_l_o BUG!', u'!GUB GIB LAER A'),
             (u'a _L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_Rbug', u'a gub'),
