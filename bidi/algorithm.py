@@ -14,7 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Copyright (C) 2008-2010 Yaacov Zamir <kzamir_a_walla.co.il>,
-# Meir kriheli <meir@mksoft.co.il>
+# Copyright (C) 2010-2015 Meir kriheli <mkriheli@gmail.com>.
 "bidirectional alogrithm implementation"
 import sys
 
