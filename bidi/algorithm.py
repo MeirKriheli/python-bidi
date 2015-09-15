@@ -170,12 +170,13 @@ def get_embedding_levels(text, storage, upper_is_rtl=False, debug=False):
             bidi_type = 'R'
         else:
             bidi_type = bidirectional(_ch)
-            storage['chars'].append({
-                'ch': _ch,
-                'level': base_level,
-                'type': bidi_type,
-                'orig': bidi_type
-            })
+
+        storage['chars'].append({
+            'ch': _ch,
+            'level': base_level,
+            'type': bidi_type,
+            'orig': bidi_type
+        })
     if debug:
         debug_storage(storage, base_info=True)
 
