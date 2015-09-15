@@ -10,8 +10,10 @@ Python BiDi
 
 `Bi-directional`_ (BiDi) layout implementation in pure python
 
-.. _Bi-directional: http://en.wikipedia.org/wiki/Bi-directional_text
+`Package documentation`_
 
+.. _Bi-directional: http://en.wikipedia.org/wiki/Bi-directional_text
+.. _Package documentation: http://python-bidi.readthedocs.org/en/latest/
 
 API
 ----

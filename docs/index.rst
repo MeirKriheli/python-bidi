@@ -4,14 +4,17 @@
    contain the root `toctree` directive.
 
 Welcome to Python BiDi's documentation!
-======================================
+=======================================
+
+`Bi-directional`_ (BiDi) layout implementation in pure python.
+
+.. _Bi-directional: http://en.wikipedia.org/wiki/Bi-directional_text
 
 Contents:
 
 .. toctree::
    :maxdepth: 2
 
-   readme
    installation
    usage
    contributing
