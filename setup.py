@@ -21,7 +21,7 @@ test_requirements = [
 setup(
     name="python-bidi",
     version="0.3.4",
-    url='http://github.com/mksoft/python-bidi',
+    url='https://github.com/MeirKriheli/python-bidi',
     description='BiDi layout implementation in pure python',
     long_description=readme + '\n\n' + history,
     author='Meir Kriheli',
@@ -52,6 +52,7 @@ setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: Implementation :: PyPy',
     ],
     test_suite='tests',
     tests_require=test_requirements,
