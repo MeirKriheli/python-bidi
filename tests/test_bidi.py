@@ -51,14 +51,18 @@ class TestBidiAlgorithm(unittest.TestCase):
             (u'car is THE CAR in arabic', u'car is RAC EHT in arabic'),
             (u'CAR IS the car IN ENGLISH', u'HSILGNE NI the car SI RAC'),
             (u'he said "IT IS 123, 456, OK"', u'he said "KO ,456 ,123 SI TI"'),
-            (u'he said "IT IS (123, 456), OK"', u'he said "KO ,(456 ,123) SI TI"'),
+            (u'he said "IT IS (123, 456), OK"',
+             u'he said "KO ,(456 ,123) SI TI"'),
             (u'he said "IT IS 123,456, OK"', u'he said "KO ,123,456 SI TI"'),
-            (u'he said "IT IS (123,456), OK"', u'he said "KO ,(123,456) SI TI"'),
+            (u'he said "IT IS (123,456), OK"',
+             u'he said "KO ,(123,456) SI TI"'),
             (u'HE SAID "it is 123, 456, ok"', u'"it is 123, 456, ok" DIAS EH'),
             (u'<H123>shalom</H123>', u'<123H/>shalom<123H>'),
             (u'<h123>SAALAM</h123>', u'<h123>MALAAS</h123>'),
-            (u'HE SAID "it is a car!" AND RAN', u'NAR DNA "!it is a car" DIAS EH'),
-            (u'HE SAID "it is a car!x" AND RAN', u'NAR DNA "it is a car!x" DIAS EH'),
+            (u'HE SAID "it is a car!" AND RAN',
+             u'NAR DNA "!it is a car" DIAS EH'),
+            (u'HE SAID "it is a car!x" AND RAN',
+             u'NAR DNA "it is a car!x" DIAS EH'),
             (u'SOLVE 1*5 1-5 1/5 1+5', u'1+5 1/5 1-5 5*1 EVLOS'),
             (u'THE RANGE IS 2.5..5', u'5..2.5 SI EGNAR EHT'),
             (u'-2 CELSIUS IS COLD', u'DLOC SI SUISLEC 2-'),
@@ -75,18 +79,16 @@ class TestBidiAlgorithm(unittest.TestCase):
         storage = u'SHALOM:'
         display = u'MOLAHS:'
 
-        self.assertEqual(get_display(storage, upper_is_rtl=True, base_dir='L'), display)
-
-
+        self.assertEqual(get_display(storage, upper_is_rtl=True, base_dir='L'),
+                         display)
 
     def test_output_encoding(self):
         """Make sure the display is in the same encdoing as the incoming text"""
 
-        storage = six.b('\xf9\xec\xe5\xed')        # Hebrew word shalom in cp1255
+        storage = six.b('\xf9\xec\xe5\xed')  # Hebrew word shalom in cp1255
         display = six.b('\xed\xe5\xec\xf9')
 
         self.assertEqual(get_display(storage, encoding='cp1255'), display)
-
 
     def test_explicit_with_upper_is_rtl(self):
         """Explicit tests"""
@@ -94,14 +96,17 @@ class TestBidiAlgorithm(unittest.TestCase):
             (u'this is _LJUST_o', u'this is JUST'),
             (u'a _lsimple _RteST_o th_oat', u'a simple TSet that'),
             (u'HAS A _LPDF missing', u'PDF missing A SAH'),
-            (u'AnD hOw_L AbOuT, 123,987 tHiS_o', u'w AbOuT, 123,987 tHiSOh DnA'),
+            (u'AnD hOw_L AbOuT, 123,987 tHiS_o',
+             u'w AbOuT, 123,987 tHiSOh DnA'),
             (u'a GOOD - _L_oTEST.', u'a TSET - DOOG.'),
             (u'here_L is_o_o_o _R a good one_o', u'here is eno doog a '),
             (u'THE _rbest _lONE and', u'best ENO and EHT'),
             (u'A REAL BIG_l_o BUG!', u'!GUB GIB LAER A'),
-            (u'a _L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_Rbug', u'a gub'),
+            (u'a _L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_Rbug',
+             u'a gub'),
             # FIXME the following commented explicit test fails
-            # (u'AN ARABIC _l_o 123-456 NICE ONE!', u'!ENO ECIN 456-123  CIBARA NA'),
+            # (u'AN ARABIC _l_o 123-456 NICE ONE!',
+            #  u'!ENO ECIN 456-123  CIBARA NA'),
             (u'AN ARABIC _l _o 123-456 PAIR', u'RIAP   123-456 CIBARA NA'),
             (u'this bug 67_r_o89 catched!', u'this bug 6789 catched!'),
         )
