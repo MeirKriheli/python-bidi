@@ -3,6 +3,16 @@
 History
 =========
 
+0.4.0
+-----
+
+* Move to cookiecutter template
+* Python 3 support (py2.6, 2.7, 3.3, 3.4 and pypy)
+* Better docs
+* Travis integration
+* Tox tests
+* PEP8 cleanup
+
 0.3.4
 ------
 
