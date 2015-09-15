@@ -107,13 +107,13 @@ class TestBidiAlgorithm(unittest.TestCase):
 
         # adopt fribidi's CapRtl encoding
         mappings = {
-            u'_>': u"\u200E",
-            u'_<': u"\u200F",
-            u'_l': u"\u202A",
-            u'_r': u"\u202B",
-            u'_o': u"\u202C",
-            u'_L': u"\u202D",
-            u'_R': u"\u202E",
+            u'_>': u"\u200E",  # LRM
+            u'_<': u"\u200F",  # RLM
+            u'_l': u"\u202A",  # LRE
+            u'_r': u"\u202B",  # RLE
+            u'_o': u"\u202C",  # PDF
+            u'_L': u"\u202D",  # LRO
+            u'_R': u"\u202E",  # RLO
             u'__': '_',
         }
 
