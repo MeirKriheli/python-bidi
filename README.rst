@@ -70,7 +70,7 @@ bidi algorithm. the script can get a string as a parameter or read text from
                             Text encoding (default: utf-8)
       -u, --upper-is-rtl    treat upper case chars as strong 'R' for debugging
                             (default: False).
-      -d, --debug           Display the steps taken with the algorithm
+      -d, --debug           Output to stderr steps taken with the algorithm
       -b BASE_DIR, --base-dir=BASE_DIR
                             Override base direction [L|R]
 

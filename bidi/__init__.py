@@ -54,7 +54,7 @@ def main():
                       dest='debug',
                       default=False,
                       action='store_true',
-                      help="Display the steps taken with the algorithm")
+                      help="Output to stderr steps taken with the algorithm")
 
     parser.add_option('-b', '--base-dir',
                       dest='base_dir',
