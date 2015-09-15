@@ -66,7 +66,10 @@ def debug_storage(storage, base_info=False, chars=True, runs=False):
     import locale
     import sys
 
-    stderr = codecs.getwriter(locale.getpreferredencoding())(sys.stderr)
+    if six.PY2:
+        stderr = codecs.getwriter(locale.getpreferredencoding())(sys.stderr)
+    else:
+        stderr = sys.stderr
 
     caller = inspect.stack()[1][3]
     stderr.write('in %s\n' % caller)
@@ -88,7 +91,7 @@ def debug_storage(storage, base_info=False, chars=True, runs=False):
         stderr.write(output + u'\n')
 
         output = u'  Res. levels : %s\n' % u''.join(
-            [unicode(_ch['level']) for _ch in storage['chars']])
+            [six.text_type(_ch['level']) for _ch in storage['chars']])
         stderr.write(output)
 
         _types = [_ch['type'].ljust(3) for _ch in storage['chars']]
