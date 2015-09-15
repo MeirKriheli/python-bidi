@@ -93,7 +93,7 @@ Running tests
 
 To run the tests::
 
-    python -m bidi.tests
+    python setup.py test
 
 Some explicit tests are failing right now (see TODO)
 
