@@ -3,13 +3,6 @@
 History
 =========
 
-x.x.x
------
-
-* Refactor code
-* P2: Take into account isolate initiators and it's matching PDI
-
-
 0.3.4
 ------
 
