@@ -128,6 +128,13 @@ class TestBidiAlgorithm(unittest.TestCase):
                 storage = storage.replace(key, val)
             self.assertEqual(get_display(storage, upper_is_rtl=True), display)
 
+    def test_mixed_hebrew_numbers_issue10(self):
+        tests = (
+            (u'1 2 3 \u05E0\u05D9\u05E1\u05D9\u05D5\u05DF', u'\u05DF\u05D5\u05D9\u05E1\u05D9\u05E0 3 2 1'),
+        )
+        for storage, display in tests:
+            self.assertEqual(get_display(storage), display)
+
 
 if __name__ == '__main__':
     unittest.main()
