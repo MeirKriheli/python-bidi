@@ -129,6 +129,9 @@ class TestBidiAlgorithm(unittest.TestCase):
             self.assertEqual(get_display(storage, upper_is_rtl=True), display)
 
     def test_mixed_hebrew_numbers_issue10(self):
+        """Test for the case reported in
+        https://github.com/MeirKriheli/python-bidi/issues/10
+        """
         tests = (
             (u'1 2 3 \u05E0\u05D9\u05E1\u05D9\u05D5\u05DF', u'\u05DF\u05D5\u05D9\u05E1\u05D9\u05E0 3 2 1'),
         )
