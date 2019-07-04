@@ -3,6 +3,11 @@
 History
 =========
 
+0.4.1
+-----
+
+* Merged Fix for mixed RTL and numbers, Thanks Just van Rossum
+
 0.4.0
 -----
 

@@ -17,4 +17,4 @@ Tests based on fribidi_.
 Contributors
 ------------
 
-None yet. Why not be the first?
+* Just van Rossum - https://github.com/justvanrossum
