@@ -503,7 +503,7 @@ def reverse_contiguous_sequence(chars, line_start, line_end, highest_level,
                 else:
                     _end = run_idx
             else:
-                if _end:
+                if _end is not None:
                     chars[_start:+_end+1] = \
                             reversed(chars[_start:+_end+1])
                     _start = _end = None
