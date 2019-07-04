@@ -74,7 +74,7 @@ class TestBidiAlgorithm(unittest.TestCase):
     def test_override_base_dir(self):
         """Tests overriding the base paragraph direction"""
 
-        # normaly the display should be :MOLAHS be since we're overriding the
+        # normally the display should be :MOLAHS be since we're overriding the
         # base dir the colon should be at the end of the display
         storage = u'SHALOM:'
         display = u'MOLAHS:'
@@ -83,7 +83,7 @@ class TestBidiAlgorithm(unittest.TestCase):
                          display)
 
     def test_output_encoding(self):
-        """Make sure the display is in the same encdoing as the incoming text"""
+        """Make sure the display is in the same encoding as the incoming text"""
 
         storage = six.b('\xf9\xec\xe5\xed')  # Hebrew word shalom in cp1255
         display = six.b('\xed\xe5\xec\xf9')
@@ -108,7 +108,7 @@ class TestBidiAlgorithm(unittest.TestCase):
             # (u'AN ARABIC _l_o 123-456 NICE ONE!',
             #  u'!ENO ECIN 456-123  CIBARA NA'),
             (u'AN ARABIC _l _o 123-456 PAIR', u'RIAP   123-456 CIBARA NA'),
-            (u'this bug 67_r_o89 catched!', u'this bug 6789 catched!'),
+            (u'this bug 67_r_o89 caught!', u'this bug 6789 caught!'),
         )
 
         # adopt fribidi's CapRtl encoding

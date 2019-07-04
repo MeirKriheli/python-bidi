@@ -22,12 +22,12 @@ The algorithm starts with a single entry point `bidi.algorithm.get_display`.
 
 **Required arguments:**
 
-* ``unicode_or_str``: The orginal unicode or string (i.e: storage). If it's a string
+* ``unicode_or_str``: The original unicode or string (i.e.: storage). If it's a string
   use the optional argument ``encoding`` to specify it's encoding.
 
 **Optional arguments:**
 
-* ``encoding``: If unicode_or_str is a string, specifies the encdoing. The
+* ``encoding``: If unicode_or_str is a string, specifies the encoding. The
   algorithm uses unicodedata_ which requires unicode. This encoding will be
   used to decode and encode back to string before returning
   (default: "utf-8").

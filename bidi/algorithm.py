@@ -15,7 +15,7 @@
 
 # Copyright (C) 2008-2010 Yaacov Zamir <kzamir_a_walla.co.il>,
 # Copyright (C) 2010-2015 Meir kriheli <mkriheli@gmail.com>.
-"bidirectional alogrithm implementation"
+"bidirectional algorithm implementation"
 import sys
 
 import inspect
@@ -308,7 +308,7 @@ def calc_level_runs(storage):
 
 
 def resolve_weak_types(storage, debug=False):
-    """Reslove weak type rules W1 - W3.
+    """Resolve weak type rules W1 - W3.
 
     See: http://unicode.org/reports/tr9/#Resolving_Weak_Types
 
@@ -542,7 +542,7 @@ def reorder_resolved_levels(storage, debug):
     max_len = len(chars)
 
     # L2 should be per line
-    # Calculates highest level and loweset odd level on the fly.
+    # Calculates highest level and lowest odd level on the fly.
 
     line_start = line_end = 0
     highest_level = 0
