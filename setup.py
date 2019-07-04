@@ -20,7 +20,7 @@ test_requirements = [
 
 setup(
     name="python-bidi",
-    version="0.4.1",
+    version="0.4.2",
     url='https://github.com/MeirKriheli/python-bidi',
     description='Pure python implementation of the BiDi layout algorithm',
     long_description=readme + '\n\n' + history,

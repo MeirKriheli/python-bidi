@@ -22,7 +22,7 @@ Implementation of Unicode Bidirectional Algorithm
 http://www.unicode.org/unicode/reports/tr9/
 """
 
-VERSION = '0.4.1'
+VERSION = '0.4.2'
 
 
 def main():

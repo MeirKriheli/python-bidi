@@ -1,5 +1,11 @@
 .. :changelog:
 
+0.4.2
+-----
+
+* Type Fixes, thanks jwilk
+
+
 History
 =========
 
