@@ -20,7 +20,7 @@ import sys
 
 import inspect
 from collections import deque
-from unicodedata import bidirectional, mirrored
+from unicodedata import bidirectional, category, mirrored
 import six
 
 from .mirror import MIRRORED
@@ -577,6 +577,38 @@ def reorder_resolved_levels(storage, debug):
         debug_storage(storage)
 
 
+def reorder_combining_marks(storage, debug):
+    """Applies L3: reordering combining marks
+
+    See: https://unicode.org/reports/tr9/#L3
+
+    """
+    # L3. Combining marks applied to a right-to-left base character will at
+    # this point precede their base character. If the rendering engine
+    # expects them to follow the base characters in the final display process,
+    # then the ordering of the marks and the base character must be reversed.
+
+    chars = storage['chars']
+    idx_iter = iter(range(len(chars)))
+    try:
+        while True:
+            idx = next(idx_iter)
+            _ch = chars[idx]['ch']
+            if category(_ch) == 'Mn':
+                start = idx
+                idx = next(idx_iter)
+                while category(chars[idx]['ch']) == 'Mn':
+                    idx = next(idx_iter)
+                if chars[idx]['type'] in ('AL', 'R'):
+                    end = idx + 1
+                    chars[start:end] = reversed(chars[start:end])
+    except StopIteration:
+        pass
+
+    if debug:
+        debug_storage(storage)
+
+
 def apply_mirroring(storage, debug):
     """Applies L4: mirroring
 
@@ -647,6 +679,7 @@ def get_display(unicode_or_str, encoding='utf-8', upper_is_rtl=False,
     resolve_neutral_types(storage, debug)
     resolve_implicit_levels(storage, debug)
     reorder_resolved_levels(storage, debug)
+    reorder_combining_marks(storage, debug)
     apply_mirroring(storage, debug)
 
     chars = storage['chars']
