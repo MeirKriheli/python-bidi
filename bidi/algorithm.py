@@ -591,7 +591,8 @@ def reorder_combining_marks(storage, debug):
     chars = storage['chars']
     idx_iter = iter(range(len(chars)))
     try:
-        for idx in idx_iter:
+        while True:
+            idx = next(idx_iter)
             _ch = chars[idx]['ch']
             if category(_ch) == 'Mn':
                 start = idx
