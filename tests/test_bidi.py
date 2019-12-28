@@ -139,6 +139,14 @@ class TestBidiAlgorithm(unittest.TestCase):
         for storage, display in tests:
             self.assertEqual(get_display(storage), display)
 
+    def test_reorder_combining_marks(self):
+        tests = (
+            (u'\u0627\u064f\u0633', u'\u0633\u0627\u064f'),
+            (u'\u0627a\u0300', u'a\u0300\u0627'),
+        )
+        for storage, display in tests:
+            self.assertEqual(get_display(storage), display)
+
 
 if __name__ == '__main__':
     unittest.main()
