@@ -594,12 +594,12 @@ def reorder_combining_marks(storage, debug):
         while True:
             idx = next(idx_iter)
             _ch = chars[idx]['ch']
-            if category(_ch) == 'Mn' and chars[idx]['type'] in ('AL', 'R'):
+            if category(_ch) == 'Mn' and chars[idx]['type'] == 'R':
                 start = idx
                 idx = next(idx_iter)
                 while category(chars[idx]['ch']) == 'Mn':
                     idx = next(idx_iter)
-                if chars[idx]['type'] in ('AL', 'R'):
+                if chars[idx]['type'] == 'R':
                     end = idx + 1
                     chars[start:end] = reversed(chars[start:end])
     except StopIteration:
