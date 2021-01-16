@@ -353,7 +353,11 @@ def resolve_weak_types(storage, debug=False):
             prev_type = chars[idx-1]['type']
             next_type = chars[idx+1]['type']
 
-            if bidi_type == 'ES' and (prev_type == next_type == 'EN'):
+            if (
+                bidi_type == 'ES'
+                and next_typ == 'EN'
+                and prev_type in ('EN', 'WS', 'ET')
+            ):
                 chars[idx]['type'] = 'EN'
 
             if bidi_type == 'CS' and prev_type == next_type and \
@@ -463,7 +467,7 @@ def resolve_implicit_levels(storage, debug):
         for _ch in chars:
             # only those types are allowed at this stage
             assert _ch['type'] in ('L', 'R', 'EN', 'AN'),\
-                    '%s not allowed here' % _ch['type']
+                '%s not allowed here' % _ch['type']
 
             if _embedding_direction(_ch['level']) == 'L':
                 # I1. For all characters with an even (left-to-right) embedding
@@ -505,7 +509,7 @@ def reverse_contiguous_sequence(chars, line_start, line_end, highest_level,
             else:
                 if _end is not None:
                     chars[_start:+_end+1] = \
-                            reversed(chars[_start:+_end+1])
+                        reversed(chars[_start:+_end+1])
                     _start = _end = None
 
         # anything remaining ?
