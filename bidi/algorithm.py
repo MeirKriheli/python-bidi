@@ -355,7 +355,7 @@ def resolve_weak_types(storage, debug=False):
 
             if (
                 bidi_type == 'ES'
-                and next_typ == 'EN'
+                and next_type == 'EN'
                 and prev_type in ('EN', 'WS', 'ET')
             ):
                 chars[idx]['type'] = 'EN'
