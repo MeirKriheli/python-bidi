@@ -331,8 +331,10 @@ def resolve_weak_types(storage, debug=False):
             # W2. Search backward from each instance of a European number until
             # the first strong type (R, L, AL, or sor) is found. If an AL is
             # found, change the type of the European number to Arabic number.
+            '''
             if bidi_type == 'EN' and prev_strong == 'AL':
                 _ch['type'] = 'AN'
+            '''
 
             # update prev_strong if needed
             if bidi_type in ('R', 'L', 'AL'):
@@ -362,6 +364,7 @@ def resolve_weak_types(storage, debug=False):
 
         # W5. A sequence of European terminators adjacent to European numbers
         # changes to all European numbers.
+        '''
         for idx in range(len(chars)):
             if chars[idx]['type'] == 'EN':
                 for et_idx in range(idx-1, -1, -1):
@@ -374,6 +377,7 @@ def resolve_weak_types(storage, debug=False):
                         chars[et_idx]['type'] = 'EN'
                     else:
                         break
+        '''
 
         # W6. Otherwise, separators and terminators change to Other Neutral.
         for _ch in chars:
