@@ -21,7 +21,6 @@ import sys
 import inspect
 from collections import deque
 from unicodedata import bidirectional, mirrored
-import six
 
 from .mirror import MIRRORED
 
@@ -66,10 +65,7 @@ def debug_storage(storage, base_info=False, chars=True, runs=False):
     import locale
     import sys
 
-    if six.PY2:
-        stderr = codecs.getwriter(locale.getpreferredencoding())(sys.stderr)
-    else:
-        stderr = sys.stderr
+    stderr = sys.stderr
 
     caller = inspect.stack()[1][3]
     stderr.write('in %s\n' % caller)
@@ -91,7 +87,7 @@ def debug_storage(storage, base_info=False, chars=True, runs=False):
         stderr.write(output + u'\n')
 
         output = u'  Res. levels : %s\n' % u''.join(
-            [six.text_type(_ch['level']) for _ch in storage['chars']])
+            [str(_ch['level']) for _ch in storage['chars']])
         stderr.write(output)
 
         _types = [_ch['type'].ljust(3) for _ch in storage['chars']]
@@ -626,7 +622,7 @@ def get_display(unicode_or_str, encoding='utf-8', upper_is_rtl=False,
     storage = get_empty_storage()
 
     # utf-8 ? we need unicode
-    if isinstance(unicode_or_str, six.text_type):
+    if isinstance(unicode_or_str, str):
         text = unicode_or_str
         decoded = False
     else:

@@ -32,7 +32,6 @@ def main():
     import sys
     import codecs
     import locale
-    import six
     from .algorithm import get_display
 
     parser = optparse.OptionParser()
@@ -67,10 +66,6 @@ def main():
     if options.base_dir and options.base_dir not in 'LR':
         parser.error('option -b can be L or R')
 
-    # allow unicode in sys.stdout.write
-    if six.PY2:
-        sys.stdout = codecs.getwriter(locale.getpreferredencoding())(sys.stdout)
-
     if rest:
         lines = rest
     else:
@@ -80,7 +75,7 @@ def main():
         display = get_display(line, options.encoding, options.upper_is_rtl,
                               options.base_dir, options.debug)
         # adjust the encoding as unicode, to match the output encoding
-        if not isinstance(display, six.text_type):
+        if not isinstance(display, str):
             display = display.decode(options.encoding)
 
-        six.print_(display, end='')
+        print(display, end='')

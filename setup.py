@@ -10,17 +10,13 @@ except ImportError:
 readme = open('README.rst').read()
 history = open('CHANGELOG.rst').read().replace('.. :changelog:', '')
 
-requirements = [
-    'six'
-]
-
 test_requirements = [
     # TODO: put package test requirements here
 ]
 
 setup(
     name="python-bidi",
-    version="0.4.1",
+    version="0.4.3",
     url='https://github.com/MeirKriheli/python-bidi',
     description='Pure python implementation of the BiDi layout algorithm',
     long_description=readme + '\n\n' + history,
@@ -46,9 +42,6 @@ setup(
         'Operating System :: OS Independent',
         'License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)',
         'Topic :: Text Processing',
-        "Programming Language :: Python :: 2",
-        'Programming Language :: Python :: 2.6',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
