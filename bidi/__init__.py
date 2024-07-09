@@ -16,13 +16,51 @@
 
 # Copyright (C) 2008-2010 Yaacov Zamir <kzamir_a_walla.co.il>,
 # Copyright (C) 2010-2015 Meir kriheli <mkriheli@gmail.com>.
+#
 
-"""
-Implementation of Unicode Bidirectional Algorithm
-http://www.unicode.org/unicode/reports/tr9/
-"""
+from typing import AnyStr, Optional
 
-VERSION = '0.4.2'
+from .bidi import get_display_inner
+
+VERSION = "0.5.0"
+
+
+def get_display(
+    str_or_bytes: AnyStr,
+    encoding: str = "utf-8",
+    base_dir: Optional[str] = None,
+    debug: Optional[bool] = False,
+) -> AnyStr:
+    """Accepts string or bytes. In case of bytes, `encoding`
+    is needed as the inner function expects a valid string (default:"utf-8").
+
+    Set `upper_is_rtl` to True to treat upper case chars as strong 'R'
+    for debugging (default: False).
+
+    Set `base_dir` to 'L' or 'R' to override the calculated base_level.
+
+    Set `debug` to True to return the calculated levels.
+
+    Returns the display layout, either as unicode or `encoding` encoded
+    string.
+
+    """
+
+    if isinstance(str_or_bytes, bytes):
+        text = str_or_bytes.decode(encoding)
+        was_decoded = True
+    else:
+        text = str_or_bytes
+        was_decoded = False
+
+    display = get_display_inner(text, base_dir, debug)
+
+    if was_decoded:
+        display = display.encode(encoding)
+
+    return display
+
+
 
 
 def main():
@@ -32,8 +70,6 @@ def main():
     import sys
     import codecs
     import locale
-    import six
-    from .algorithm import get_display
 
     parser = optparse.OptionParser()
 
@@ -42,13 +78,6 @@ def main():
                       default='utf-8',
                       type='string',
                       help='Text encoding (default: utf-8)')
-
-    parser.add_option('-u', '--upper-is-rtl',
-                      dest='upper_is_rtl',
-                      default=False,
-                      action='store_true',
-                      help="Treat upper case chars as strong 'R' "
-                      'for debugging (default: False).')
 
     parser.add_option('-d', '--debug',
                       dest='debug',

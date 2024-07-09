@@ -606,53 +606,53 @@ def get_empty_storage():
     }
 
 
-def get_display(unicode_or_str, encoding='utf-8', upper_is_rtl=False,
-                base_dir=None, debug=False):
-    """Accepts unicode or string. In case it's a string, `encoding`
-    is needed as it works on unicode ones (default:"utf-8").
-
-    Set `upper_is_rtl` to True to treat upper case chars as strong 'R'
-    for debugging (default: False).
-
-    Set `base_dir` to 'L' or 'R' to override the calculated base_level.
-
-    Set `debug` to True to display (using sys.stderr) the steps taken with the
-    algorithm.
-
-    Returns the display layout, either as unicode or `encoding` encoded
-    string.
-
-    """
-    storage = get_empty_storage()
-
-    # utf-8 ? we need unicode
-    if isinstance(unicode_or_str, six.text_type):
-        text = unicode_or_str
-        decoded = False
-    else:
-        text = unicode_or_str.decode(encoding)
-        decoded = True
-
-    if base_dir is None:
-        base_level = get_base_level(text, upper_is_rtl)
-    else:
-        base_level = PARAGRAPH_LEVELS[base_dir]
-
-    storage['base_level'] = base_level
-    storage['base_dir'] = ('L', 'R')[base_level]
-
-    get_embedding_levels(text, storage, upper_is_rtl, debug)
-    explicit_embed_and_overrides(storage, debug)
-    resolve_weak_types(storage, debug)
-    resolve_neutral_types(storage, debug)
-    resolve_implicit_levels(storage, debug)
-    reorder_resolved_levels(storage, debug)
-    apply_mirroring(storage, debug)
-
-    chars = storage['chars']
-    display = u''.join([_ch['ch'] for _ch in chars])
-
-    if decoded:
-        return display.encode(encoding)
-    else:
-        return display
+# def get_display(unicode_or_str, encoding='utf-8', upper_is_rtl=False,
+#                 base_dir=None, debug=False):
+#     """Accepts unicode or string. In case it's a string, `encoding`
+#     is needed as it works on unicode ones (default:"utf-8").
+#
+#     Set `upper_is_rtl` to True to treat upper case chars as strong 'R'
+#     for debugging (default: False).
+#
+#     Set `base_dir` to 'L' or 'R' to override the calculated base_level.
+#
+#     Set `debug` to True to display (using sys.stderr) the steps taken with the
+#     algorithm.
+#
+#     Returns the display layout, either as unicode or `encoding` encoded
+#     string.
+#
+#     """
+#     storage = get_empty_storage()
+#
+#     # utf-8 ? we need unicode
+#     if isinstance(unicode_or_str, six.text_type):
+#         text = unicode_or_str
+#         decoded = False
+#     else:
+#         text = unicode_or_str.decode(encoding)
+#         decoded = True
+#
+#     if base_dir is None:
+#         base_level = get_base_level(text, upper_is_rtl)
+#     else:
+#         base_level = PARAGRAPH_LEVELS[base_dir]
+#
+#     storage['base_level'] = base_level
+#     storage['base_dir'] = ('L', 'R')[base_level]
+#
+#     get_embedding_levels(text, storage, upper_is_rtl, debug)
+#     explicit_embed_and_overrides(storage, debug)
+#     resolve_weak_types(storage, debug)
+#     resolve_neutral_types(storage, debug)
+#     resolve_implicit_levels(storage, debug)
+#     reorder_resolved_levels(storage, debug)
+#     apply_mirroring(storage, debug)
+#
+#     chars = storage['chars']
+#     display = u''.join([_ch['ch'] for _ch in chars])
+#
+#     if decoded:
+#         return display.encode(encoding)
+#     else:
+#         return display
