@@ -18,127 +18,70 @@
 """BiDi algorithm unit tests"""
 
 import unittest
-import six
-from bidi.algorithm import get_display, get_empty_storage, get_embedding_levels
+
+from bidi import get_display
+
+# keep as list with char per line to prevent browsers from changing display order
+HELLO_HEB = "".join([
+    "ש",
+    "ל",
+    "ו",
+    "ם"
+])
+
+HELLO_HEB_DISPLAY = "".join([
+    "ם",
+    "ו",
+    "ל",
+    "ש",
+])
 
 
 class TestBidiAlgorithm(unittest.TestCase):
     "Tests the bidi algorithm (based on GNU fribidi ones)"
 
     def test_surrogate(self):
-        """Test for storage and base levels in case of surrogate pairs"""
+        """Test surrogate pairs"""
 
-        storage = get_empty_storage()
+        text = HELLO_HEB + " \U0001d7f612"
 
-        text = u'HELLO \U0001d7f612'
-        get_embedding_levels(text, storage, upper_is_rtl=True)
-
-        # should return 9, not 10 even in --with-unicode=ucs2
-        self.assertEqual(len(storage['chars']), 9)
-
-        # Is the expected result ? should be EN
-        _ch = storage['chars'][6]
-        self.assertEqual(_ch['ch'], u'\U0001d7f6')
-        self.assertEqual(_ch['type'], 'EN')
-
-        display = get_display(text, upper_is_rtl=True)
-        self.assertEqual(display, u'\U0001d7f612 OLLEH')
-
-    def test_implict_with_upper_is_rtl(self):
-        '''Implicit tests'''
-
-        tests = (
-            (u'car is THE CAR in arabic', u'car is RAC EHT in arabic'),
-            (u'CAR IS the car IN ENGLISH', u'HSILGNE NI the car SI RAC'),
-            (u'he said "IT IS 123, 456, OK"', u'he said "KO ,456 ,123 SI TI"'),
-            (u'he said "IT IS (123, 456), OK"',
-             u'he said "KO ,(456 ,123) SI TI"'),
-            (u'he said "IT IS 123,456, OK"', u'he said "KO ,123,456 SI TI"'),
-            (u'he said "IT IS (123,456), OK"',
-             u'he said "KO ,(123,456) SI TI"'),
-            (u'HE SAID "it is 123, 456, ok"', u'"it is 123, 456, ok" DIAS EH'),
-            (u'<H123>shalom</H123>', u'<123H/>shalom<123H>'),
-            (u'<h123>SAALAM</h123>', u'<h123>MALAAS</h123>'),
-            (u'HE SAID "it is a car!" AND RAN',
-             u'NAR DNA "!it is a car" DIAS EH'),
-            (u'HE SAID "it is a car!x" AND RAN',
-             u'NAR DNA "it is a car!x" DIAS EH'),
-            (u'SOLVE 1*5 1-5 1/5 1+5', u'1+5 1/5 1-5 5*1 EVLOS'),
-            (u'THE RANGE IS 2.5..5', u'5..2.5 SI EGNAR EHT'),
-            (u'-2 CELSIUS IS COLD', u'DLOC SI SUISLEC 2-'),
-        )
-
-        for storage, display in tests:
-            self.assertEqual(get_display(storage, upper_is_rtl=True), display)
+        display = get_display(text)
+        self.assertEqual(display, "\U0001d7f612 " + HELLO_HEB_DISPLAY)
 
     def test_override_base_dir(self):
         """Tests overriding the base paragraph direction"""
 
         # normally the display should be :MOLAHS be since we're overriding the
         # base dir the colon should be at the end of the display
-        storage = u'SHALOM:'
-        display = u'MOLAHS:'
+        storage = f"{HELLO_HEB}:"
+        display = f"{HELLO_HEB_DISPLAY}:"
 
-        self.assertEqual(get_display(storage, upper_is_rtl=True, base_dir='L'),
-                         display)
+        self.assertEqual(get_display(storage, base_dir="L"), display)
 
     def test_output_encoding(self):
         """Make sure the display is in the same encoding as the incoming text"""
 
-        storage = six.b('\xf9\xec\xe5\xed')  # Hebrew word shalom in cp1255
-        display = six.b('\xed\xe5\xec\xf9')
+        storage = b"\xf9\xec\xe5\xed"  # Hebrew word shalom in cp1255
+        display = b"\xed\xe5\xec\xf9"
 
-        self.assertEqual(get_display(storage, encoding='cp1255'), display)
-
-    def test_explicit_with_upper_is_rtl(self):
-        """Explicit tests"""
-        tests = (
-            (u'this is _LJUST_o', u'this is JUST'),
-            (u'a _lsimple _RteST_o th_oat', u'a simple TSet that'),
-            (u'HAS A _LPDF missing', u'PDF missing A SAH'),
-            (u'AnD hOw_L AbOuT, 123,987 tHiS_o',
-             u'w AbOuT, 123,987 tHiSOh DnA'),
-            (u'a GOOD - _L_oTEST.', u'a TSET - DOOG.'),
-            (u'here_L is_o_o_o _R a good one_o', u'here is eno doog a '),
-            (u'THE _rbest _lONE and', u'best ENO and EHT'),
-            (u'A REAL BIG_l_o BUG!', u'!GUB GIB LAER A'),
-            (u'a _L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_L_Rbug',
-             u'a gub'),
-            # FIXME the following commented explicit test fails
-            # (u'AN ARABIC _l_o 123-456 NICE ONE!',
-            #  u'!ENO ECIN 456-123  CIBARA NA'),
-            (u'AN ARABIC _l _o 123-456 PAIR', u'RIAP   123-456 CIBARA NA'),
-            (u'this bug 67_r_o89 caught!', u'this bug 6789 caught!'),
-        )
-
-        # adopt fribidi's CapRtl encoding
-        mappings = {
-            u'_>': u"\u200E",  # LRM
-            u'_<': u"\u200F",  # RLM
-            u'_l': u"\u202A",  # LRE
-            u'_r': u"\u202B",  # RLE
-            u'_o': u"\u202C",  # PDF
-            u'_L': u"\u202D",  # LRO
-            u'_R': u"\u202E",  # RLO
-            u'__': '_',
-        }
-
-        for storage, display in tests:
-            for key, val in mappings.items():
-                storage = storage.replace(key, val)
-            self.assertEqual(get_display(storage, upper_is_rtl=True), display)
+        self.assertEqual(get_display(storage, encoding="cp1255"), display)
 
     def test_mixed_hebrew_numbers_issue10(self):
-        """Test for the case reported in
-        https://github.com/MeirKriheli/python-bidi/issues/10
-        """
+        """Test for the case reported in https://github.com/MeirKriheli/python-bidi/issues/10"""
+
         tests = (
-            (u'1 2 3 \u05E0\u05D9\u05E1\u05D9\u05D5\u05DF', u'\u05DF\u05D5\u05D9\u05E1\u05D9\u05E0 3 2 1'),
-            (u'1 2 3 123 \u05E0\u05D9\u05E1\u05D9\u05D5\u05DF', u'\u05DF\u05D5\u05D9\u05E1\u05D9\u05E0 123 3 2 1'),
+            (
+                "1 2 3 \u05E0\u05D9\u05E1\u05D9\u05D5\u05DF",
+                "\u05DF\u05D5\u05D9\u05E1\u05D9\u05E0 3 2 1",
+            ),
+            (
+                "1 2 3 123 \u05E0\u05D9\u05E1\u05D9\u05D5\u05DF",
+                "\u05DF\u05D5\u05D9\u05E1\u05D9\u05E0 123 3 2 1",
+            ),
         )
         for storage, display in tests:
             self.assertEqual(get_display(storage), display)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
