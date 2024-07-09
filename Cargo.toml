@@ -10,3 +10,4 @@ crate-type = ["cdylib"]
 
 [dependencies]
 pyo3 = { version = "0.22.1", features = ["extension-module"] }
+unicode-bidi = "0.3.15"
