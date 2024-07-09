@@ -1,5 +1,16 @@
 .. :changelog:
 
+0.5.0
+-----
+
+Backwards incompatible changes!
+
+* Switched to using Rust based unicode-bidi using PyO3
+* Dropped Python < 3.9 support
+* Removed "upper_is_rtl"
+* Import of ``get_display`` changed to ``from bidi import get_display``
+
+
 0.4.2
 -----
 
