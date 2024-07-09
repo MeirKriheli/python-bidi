@@ -1,0 +1,12 @@
+[package]
+authors = ["Meir Kriheli <mkriheli@gmail.com>"]
+name = "python-bidi"
+version = "0.5.0"
+edition = "2021"
+
+[lib]
+name = "bidi"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.22.1", features = ["extension-module"] }

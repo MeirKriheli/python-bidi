@@ -5,7 +5,9 @@ include COPYING
 include COPYING.LESSER
 include TODO.rst
 include README.rst
+include pyproject.toml Cargo.toml
 
+recursive-include src *
 recursive-include tests *
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]
