@@ -61,44 +61,43 @@ def get_display(
     return display
 
 
-
-
 def main():
     """Will be used to create the console script"""
 
-    import optparse
+    import argparse
     import sys
-    import codecs
-    import locale
 
-    parser = optparse.OptionParser()
+    parser = argparse.ArgumentParser()
 
-    parser.add_option('-e', '--encoding',
-                      dest='encoding',
-                      default='utf-8',
-                      type='string',
-                      help='Text encoding (default: utf-8)')
+    parser.add_argument(
+        "-e",
+        "--encoding",
+        dest="encoding",
+        default="utf-8",
+        type=str,
+        help="Text encoding (default: utf-8)",
+    )
 
-    parser.add_option('-d', '--debug',
-                      dest='debug',
-                      default=False,
-                      action='store_true',
-                      help="Output to stderr steps taken with the algorithm")
+    parser.add_argument(
+        "-d",
+        "--debug",
+        dest="debug",
+        default=False,
+        action="store_true",
+        help="Output to stderr steps taken with the algorithm",
+    )
 
-    parser.add_option('-b', '--base-dir',
-                      dest='base_dir',
-                      default=None,
-                      type='string',
-                      help="Override base direction [L|R]")
+    parser.add_argument(
+        "-b",
+        "--base-dir",
+        dest="base_dir",
+        choices=["L", "R"],
+        default=None,
+        type=str,
+        help="Override base direction [L|R]",
+    )
 
-    options, rest = parser.parse_args()
-
-    if options.base_dir and options.base_dir not in 'LR':
-        parser.error('option -b can be L or R')
-
-    # allow unicode in sys.stdout.write
-    if six.PY2:
-        sys.stdout = codecs.getwriter(locale.getpreferredencoding())(sys.stdout)
+    options, rest = parser.parse_known_args()
 
     if rest:
         lines = rest
@@ -106,10 +105,17 @@ def main():
         lines = sys.stdin
 
     for line in lines:
-        display = get_display(line, options.encoding, options.upper_is_rtl,
-                              options.base_dir, options.debug)
+        display = get_display(
+            line,
+            options.encoding,
+            options.base_dir,
+            options.debug,
+        )
         # adjust the encoding as unicode, to match the output encoding
-        if not isinstance(display, six.text_type):
+        if not isinstance(display, str):
             display = display.decode(options.encoding)
 
-        six.print_(display, end='')
+        print(display, end="")
+
+if __name__ == "__main__":
+    main()
