@@ -117,5 +117,6 @@ def main():
 
         print(display, end="")
 
+
 if __name__ == "__main__":
     main()

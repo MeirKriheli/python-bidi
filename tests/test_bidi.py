@@ -22,19 +22,23 @@ import unittest
 from bidi import get_display
 
 # keep as list with char per line to prevent browsers from changing display order
-HELLO_HEB = "".join([
-    "ש",
-    "ל",
-    "ו",
-    "ם"
-])
+HELLO_HEB_LOGICAL = "".join(
+    [
+        "ש",
+        "ל",
+        "ו",
+        "ם"
+    ]
+)
 
-HELLO_HEB_DISPLAY = "".join([
-    "ם",
-    "ו",
-    "ל",
-    "ש",
-])
+HELLO_HEB_DISPLAY = "".join(
+    [
+        "ם",
+        "ו",
+        "ל",
+        "ש",
+    ]
+)
 
 
 class TestBidiAlgorithm(unittest.TestCase):
@@ -43,7 +47,7 @@ class TestBidiAlgorithm(unittest.TestCase):
     def test_surrogate(self):
         """Test surrogate pairs"""
 
-        text = HELLO_HEB + " \U0001d7f612"
+        text = HELLO_HEB_LOGICAL + " \U0001d7f612"
 
         display = get_display(text)
         self.assertEqual(display, "\U0001d7f612 " + HELLO_HEB_DISPLAY)
@@ -53,7 +57,7 @@ class TestBidiAlgorithm(unittest.TestCase):
 
         # normally the display should be :MOLAHS be since we're overriding the
         # base dir the colon should be at the end of the display
-        storage = f"{HELLO_HEB}:"
+        storage = f"{HELLO_HEB_LOGICAL}:"
         display = f"{HELLO_HEB_DISPLAY}:"
 
         self.assertEqual(get_display(storage, base_dir="L"), display)
