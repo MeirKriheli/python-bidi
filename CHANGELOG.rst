@@ -1,3 +1,6 @@
+Changelog
+==========
+
 .. :changelog:
 
 0.5.0
@@ -16,9 +19,6 @@ Backwards incompatible changes!
 
 * Type Fixes, thanks jwilk
 
-
-History
-=========
 
 0.4.1
 -----

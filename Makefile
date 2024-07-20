@@ -40,9 +40,9 @@ coverage:
 	open htmlcov/index.html
 
 docs:
-	rm -f docs/python-bidi.rst
+	rm -f docs/bidi.rst
 	rm -f docs/modules.rst
-	sphinx-apidoc -o docs/ python-bidi
+	sphinx-apidoc -o docs/ bidi
 	$(MAKE) -C docs clean
 	$(MAKE) -C docs html
 	open docs/_build/html/index.html
