@@ -30,6 +30,14 @@ To use Python BiDi in a project:
     some_string = "your string goes here"
     result = bidi.get_display(some_string)
 
+
+Version 0.5.1 adds compat for the older import path:
+
+.. code-block:: python
+
+    from bidi import get_display
+
+
 Contents:
 
 .. toctree::

@@ -22,14 +22,7 @@ import unittest
 from bidi import get_display
 
 # keep as list with char per line to prevent browsers from changing display order
-HELLO_HEB_LOGICAL = "".join(
-    [
-        "ש",
-        "ל",
-        "ו",
-        "ם"
-    ]
-)
+HELLO_HEB_LOGICAL = "".join(["ש", "ל", "ו", "ם"])
 
 HELLO_HEB_DISPLAY = "".join(
     [
@@ -85,6 +78,16 @@ class TestBidiAlgorithm(unittest.TestCase):
         )
         for storage, display in tests:
             self.assertEqual(get_display(storage), display)
+
+    def test_compat(self):
+        """Test backword compat from import"""
+
+        from bidi.algorithm import get_display as get_display_compat
+
+        storage = f"{HELLO_HEB_LOGICAL}"
+        display = f"{HELLO_HEB_DISPLAY}"
+
+        self.assertEqual(get_display_compat(storage), display)
 
 
 if __name__ == "__main__":

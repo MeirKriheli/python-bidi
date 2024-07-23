@@ -4,6 +4,14 @@ bidi package
 Submodules
 ----------
 
+bidi.algorithm module
+---------------------
+
+.. automodule:: bidi.algorithm
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 bidi.bidi module
 ----------------
 
