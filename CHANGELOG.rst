@@ -3,6 +3,13 @@ Changelog
 
 .. :changelog:
 
+0.5.1
+-------
+
+* Added compat for older import, closes #23
+* Updated copyrights
+
+
 0.5.0
 -----
 
