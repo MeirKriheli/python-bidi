@@ -3,8 +3,8 @@ include CONTRIBUTING.rst
 include CHANGELOG.rst
 include COPYING
 include COPYING.LESSER
-include TODO.rst
 include README.rst
+include LICENSE-THIRD-PARTY.yml
 include pyproject.toml Cargo.toml
 
 recursive-include src *
