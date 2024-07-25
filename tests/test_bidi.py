@@ -80,7 +80,7 @@ class TestBidiAlgorithm(unittest.TestCase):
             self.assertEqual(get_display(storage), display)
 
     def test_compat(self):
-        """Test backword compat from import"""
+        """Test backward compat for import get_display"""
 
         from bidi.algorithm import get_display as get_display_compat
 
