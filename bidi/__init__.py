@@ -43,6 +43,16 @@ def main():
     )
 
     parser.add_argument(
+        "-u",
+        "--upper-is-rtl",
+        dest="upper_is_rtl",
+        default=False,
+        action="store_true",
+        help="Treat upper case chars as strong 'R' "
+        "for debugging (default: False), Ignored in Rust algo",
+    )
+
+    parser.add_argument(
         "-d",
         "--debug",
         dest="debug",
@@ -61,17 +71,37 @@ def main():
         help="Override base direction [L|R]",
     )
 
+    parser.add_argument(
+        "-r",
+        "--rust",
+        dest="use_rust",
+        action="store_true",
+        help="Use the Rust unicode-bidi implemention instead of the Python one",
+    )
+
+    parser.add_argument(
+        "-v", "--version", action="version", version=f"pybidi {VERSION}"
+    )
+
     options, rest = parser.parse_known_args()
 
     lines = rest or sys.stdin
 
+    params = {
+        "encoding": options.encoding,
+        "base_dir": options.base_dir,
+        "debug": options.debug,
+    }
+
+    if options.use_rust:
+        display_func = get_display
+    else:
+        from .algorithm import get_display as get_display_python
+        display_func = get_display_python
+        params["upper_is_rtl"] = options.upper_is_rtl
+
     for line in lines:
-        display = get_display(
-            line,
-            options.encoding,
-            options.base_dir,
-            options.debug,
-        )
+        display = display_func(line, **params)
         # adjust the encoding as unicode, to match the output encoding
         if not isinstance(display, str):
             display = bytes(display).decode(options.encoding)
