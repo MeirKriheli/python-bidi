@@ -3,6 +3,12 @@ Changelog
 
 .. :changelog:
 
+0.5.2
+-----
+
+* Added get_base_level backward compat
+* docstring cleanup
+
 0.5.1
 -------
 

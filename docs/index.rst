@@ -31,7 +31,7 @@ To use Python BiDi in a project:
     result = bidi.get_display(some_string)
 
 
-Version 0.5.1 adds compat for the older import path:
+Versions 0.5.1 and 0.5.2 adds compat for the older import path:
 
 .. code-block:: python
 

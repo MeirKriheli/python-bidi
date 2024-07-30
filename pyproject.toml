@@ -4,13 +4,11 @@ build-backend = "maturin"
 
 [project]
 name = "python-bidi"
-version = "0.5.1"
+version = "0.5.2"
 readme = "README.rst"
 keywords = ["bidi", "unicode", "layout"]
 description = "Python Bidi layout wrapping the Rust crate unicode-bidi"
-authors = [
-    {name="Meir Kriheli", email="mkriheli@gmail.com"},
-]
+authors = [{ name = "Meir Kriheli", email = "mkriheli@gmail.com" }]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
