@@ -84,8 +84,8 @@ class TestBidiAlgorithm(unittest.TestCase):
 
         from bidi.algorithm import get_display as get_display_compat
 
-        storage = f"{HELLO_HEB_LOGICAL}"
-        display = f"{HELLO_HEB_DISPLAY}"
+        storage = HELLO_HEB_LOGICAL
+        display = HELLO_HEB_DISPLAY
 
         self.assertEqual(get_display_compat(storage), display)
 
