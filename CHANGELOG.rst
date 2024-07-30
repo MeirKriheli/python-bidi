@@ -3,6 +3,14 @@ Changelog
 
 .. :changelog:
 
+0.6.0
+-----
+
+* Added implemention selection (Python or Rust) to pybidi cli,
+  respecting backward comapt
+* Restored older algorithm, supports both implementations closes #25
+* Modernize and simplify Python code (Thanks Christian Clauss)
+
 0.5.2
 -----
 

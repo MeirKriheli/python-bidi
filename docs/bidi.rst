@@ -20,6 +20,22 @@ bidi.bidi module
    :undoc-members:
    :show-inheritance:
 
+bidi.mirror module
+------------------
+
+.. automodule:: bidi.mirror
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+bidi.wrapper module
+-------------------
+
+.. automodule:: bidi.wrapper
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

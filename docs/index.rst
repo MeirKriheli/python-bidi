@@ -6,37 +6,7 @@
 Welcome to Python BiDi's documentation!
 =======================================
 
-`Bi-directional`_ (BiDi) layout implementation in pure python.
-
-.. _Bi-directional: http://en.wikipedia.org/wiki/Bi-directional_text
-
-Installation
-------------
-
-At the command line (assuming you're using some virtualenv)::
-
-    pip install python-bidi
-
-
-Usage
---------
-
-To use Python BiDi in a project:
-
-.. code-block:: python
-
-    import bidi
-
-    some_string = "your string goes here"
-    result = bidi.get_display(some_string)
-
-
-Versions 0.5.1 and 0.5.2 adds compat for the older import path:
-
-.. code-block:: python
-
-    from bidi import get_display
-
+.. include:: ../README.rst
 
 Contents:
 
