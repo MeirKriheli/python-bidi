@@ -61,10 +61,7 @@ def main():
 
     options, rest = parser.parse_known_args()
 
-    if rest:
-        lines = rest
-    else:
-        lines = sys.stdin
+    lines = rest or sys.stdin
 
     for line in lines:
         display = get_display(

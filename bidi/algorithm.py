@@ -1,6 +1,6 @@
 from typing import AnyStr, Optional
 
-from .bidi import get_display_inner, get_base_level_inner
+from .bidi import get_base_level_inner, get_display_inner
 
 
 def get_display(
