@@ -12,9 +12,6 @@ def get_display(
     """Accepts string or bytes. In case of bytes, `encoding`
     is needed as the inner function expects a valid string (default:"utf-8").
 
-    Set `upper_is_rtl` to True to treat upper case chars as strong 'R'
-    for debugging (default: False).
-
     Set `base_dir` to 'L' or 'R' to override the calculated base_level.
 
     Set `debug` to True to return the calculated levels.
