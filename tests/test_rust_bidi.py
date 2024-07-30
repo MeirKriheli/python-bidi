@@ -19,7 +19,7 @@
 
 import unittest
 
-from bidi import get_display
+from bidi import get_base_level, get_display
 
 # keep as list with char per line to prevent browsers from changing display order
 HELLO_HEB_LOGICAL = "".join(["ש", "ל", "ו", "ם"])
@@ -34,8 +34,8 @@ HELLO_HEB_DISPLAY = "".join(
 )
 
 
-class TestBidiAlgorithm(unittest.TestCase):
-    "Tests the bidi algorithm (based on GNU fribidi ones)"
+class TestRustBidiAlgorithm(unittest.TestCase):
+    "Tests the Rust based bidi algorithm"
 
     def test_surrogate(self):
         """Test surrogate pairs"""
@@ -79,20 +79,9 @@ class TestBidiAlgorithm(unittest.TestCase):
         for storage, display in tests:
             self.assertEqual(get_display(storage), display)
 
-    def test_compat(self):
-        """Test backward compat for import get_display"""
-
-        from bidi.algorithm import get_display as get_display_compat
-
-        storage = HELLO_HEB_LOGICAL
-        display = HELLO_HEB_DISPLAY
-
-        self.assertEqual(get_display_compat(storage), display)
-
     def test_get_base_level(self):
-        """Test base dir for backward comat"""
+        """Test base dir"""
 
-        from bidi.algorithm import get_base_level
         self.assertEqual(get_base_level(HELLO_HEB_LOGICAL), 1)
         self.assertEqual(get_base_level("Hello"), 0)
 

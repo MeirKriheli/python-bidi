@@ -18,7 +18,9 @@
 # Copyright (C) 2010-2024 Meir kriheli <mkriheli@gmail.com>.
 #
 
-from .algorithm import get_display
+from .wrapper import get_base_level, get_display
+
+__all__ = ["get_base_level", "get_display"]
 
 VERSION = "0.5.2"
 
@@ -72,7 +74,7 @@ def main():
         )
         # adjust the encoding as unicode, to match the output encoding
         if not isinstance(display, str):
-            display = display.decode(options.encoding)
+            display = bytes(display).decode(options.encoding)
 
         print(display, end="")
 
