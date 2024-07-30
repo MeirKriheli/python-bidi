@@ -2,10 +2,10 @@
 Python BiDi
 ===============================
 
-.. image:: https://badge.fury.io/py/python-bidi.png
-    :target: http://badge.fury.io/py/python-bidi
+`Bi-directional`_ (BiDi) layout for Python providing 2 implementations:
 
-`Bi-directional`_ (BiDi) layout for Python, wrapping the `unicode-bidi`_ crate.
+* V5 of the algorithm implemented with Python.
+* Wrapper the `unicode-bidi`_ Rust crate.
 
 `Package documentation`_
 
@@ -14,10 +14,21 @@ Python BiDi
 .. _Package documentation: http://python-bidi.readthedocs.org/en/latest/
 
 
+For the python implementation, and compatible with previous versions, use::
+
+    from bidi.algorithm import get_display
+
+
+For the newer Rust based one, which seems to implement higher version of
+the algorithm (albeit with some missing see #25), use the top level import::
+
+    from bidi import get_display
+
+
 API
 ----
 
-The algorithm starts with a single entry point `bidi.get_display`.
+The algorithm starts with a single entry point `get_display` (see above for selecting the implementaion).
 
 **Required arguments:**
 
@@ -36,7 +47,14 @@ The algorithm starts with a single entry point `bidi.get_display`.
 * ``debug``: ``True`` to display the Unicode levels as seen by the algorithm
   (default: ``False``).
 
-Returns the display layout, either as ``str`` or ``encoding`` encoded ``bytes``
+
+The Python implementaion adds one more optional argument:
+
+* ``upper_is_rtl``: True to treat upper case chars as strong 'R' for
+  debugging (default: False).
+
+
+It returns the display layout, either as ``str`` or ``encoding`` encoded ``bytes``
 (depending on the type of ``str_or_bytes'``).
 
 .. _unicodedata: http://docs.python.org/library/unicodedata.html
@@ -73,15 +91,19 @@ display algorithm. The script can get a string as a parameter or read text from
 Usage::
 
     $ pybidi -h
-    usage: pybidi [-h] [-e ENCODING] [-d] [-b {L,R}]
+    usage: pybidi [-h] [-e ENCODING] [-u] [-d] [-b {L,R}] [-r] [-v]
 
     options:
-      -h, --help            show this help message and exit
-      -e ENCODING, --encoding ENCODING
+    -h, --help            show this help message and exit
+    -e ENCODING, --encoding ENCODING
                             Text encoding (default: utf-8)
-      -d, --debug           Output to stderr steps taken with the algorithm
-      -b {L,R}, --base-dir {L,R}
+    -u, --upper-is-rtl    Treat upper case chars as strong 'R' for debugging (default: False), Ignored in Rust algo
+    -d, --debug           Output to stderr steps taken with the algorithm
+    -b {L,R}, --base-dir {L,R}
                             Override base direction [L|R]
+    -r, --rust            Use the Rust unicode-bidi implemention instead of the Python one
+    -v, --version         show program's version number and exit
+
 
 Examples::
 
@@ -92,7 +114,10 @@ Examples::
 Installation
 -------------
 
-See ``docs/INSTALL.rst``
+At the command line (assuming you're using some virtualenv)::
+
+    pip install python-bidi
+
 
 Running tests
 --------------
