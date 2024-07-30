@@ -1,6 +1,6 @@
 from typing import AnyStr, Optional
 
-from .bidi import get_display_inner
+from .bidi import get_display_inner, get_base_level_inner
 
 
 def get_display(
@@ -37,3 +37,11 @@ def get_display(
         display = display.encode(encoding)
 
     return display
+
+
+def get_base_level(text: str) -> int:
+    """Returns the base unicode level of the 1st paragraph in `text`.
+
+    Return value of 0 means LTR, while 1 means RTL.
+    """
+    return get_base_level_inner(text)

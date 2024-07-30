@@ -89,6 +89,13 @@ class TestBidiAlgorithm(unittest.TestCase):
 
         self.assertEqual(get_display_compat(storage), display)
 
+    def test_get_base_level(self):
+        """Test base dir for backward comat"""
+
+        from bidi.algorithm import get_base_level
+        self.assertEqual(get_base_level(HELLO_HEB_LOGICAL), 1)
+        self.assertEqual(get_base_level("Hello"), 0)
+
 
 if __name__ == "__main__":
     unittest.main()
