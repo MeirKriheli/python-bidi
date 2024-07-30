@@ -22,7 +22,8 @@ from .wrapper import get_base_level, get_display
 
 __all__ = ["get_base_level", "get_display"]
 
-VERSION = "0.5.2"
+VERSION_TUPLE = (0, 6, 0)
+VERSION = ".".join(str(x) for x in VERSION_TUPLE)
 
 
 def main():
@@ -97,6 +98,7 @@ def main():
         display_func = get_display
     else:
         from .algorithm import get_display as get_display_python
+
         display_func = get_display_python
         params["upper_is_rtl"] = options.upper_is_rtl
 
