@@ -25,6 +25,9 @@ classifiers = [
 [project.urls]
 Homepage = "https://github.com/MeirKriheli/python-bidi"
 Repository = "https://github.com/MeirKriheli/python-bidi"
+Documentation = "https://python-bidi.readthedocs.io/en/latest/"
+Issues = "https://github.com/MeirKriheli/python-bidi/issues"
+Changelog = "https://github.com/MeirKriheli/python-bidi/blob/master/CHANGELOG.rst"
 
 [project.scripts]
 pybidi = "bidi:main"
