@@ -55,7 +55,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'Python BiDi'
-copyright = '2014, Meir Kriheli'
+copyright = '2014-2024, Meir Kriheli'
 
 # The version info for the project you're documenting, acts as replacement
 # for |version| and |release|, also used in various other places throughout
