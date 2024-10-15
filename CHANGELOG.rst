@@ -3,6 +3,11 @@ Changelog
 
 .. :changelog:
 
+0.6.2
+-----
+
+Added check-latest to the build
+
 0.6.1
 -----
 
