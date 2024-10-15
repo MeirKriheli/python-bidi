@@ -127,7 +127,7 @@ dependencies = [
 
 [[package]]
 name = "python-bidi"
-version = "0.6.2"
+version = "0.6.3"
 dependencies = [
  "pyo3",
  "unicode-bidi",

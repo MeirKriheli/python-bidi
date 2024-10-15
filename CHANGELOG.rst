@@ -3,10 +3,16 @@ Changelog
 
 .. :changelog:
 
+0.6.3
+-----
+
+* Updated pyo3 to 0.22.4
+* Python 3.13 wheels are finally working
+
 0.6.2
 -----
 
-Added check-latest to the build
+* Added check-latest to the build
 
 0.6.1
 -----
