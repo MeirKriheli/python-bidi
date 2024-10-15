@@ -9,5 +9,5 @@ name = "bidi"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = { version = "0.22.1", features = ["extension-module"] }
+pyo3 = { version = "0.22.4", features = ["extension-module"] }
 unicode-bidi = "0.3.15"
