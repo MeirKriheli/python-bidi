@@ -3,6 +3,11 @@ Changelog
 
 .. :changelog:
 
+0.6.1
+-----
+
+* Bumped to build Python 3.13 wheels
+
 0.6.0
 -----
 
