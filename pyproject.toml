@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "python-bidi"
-version = "0.6.3"
+version = "0.6.4"
 readme = "README.rst"
 keywords = ["bidi", "unicode", "layout"]
 description = "Python Bidi layout wrapping the Rust crate unicode-bidi"

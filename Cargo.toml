@@ -1,7 +1,7 @@
 [package]
 authors = ["Meir Kriheli <mkriheli@gmail.com>"]
 name = "python-bidi"
-version = "0.6.3"
+version = "0.6.4"
 edition = "2021"
 
 [lib]

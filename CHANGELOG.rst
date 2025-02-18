@@ -3,6 +3,15 @@ Changelog
 
 .. :changelog:
 
+0.6.4
+-----
+
+* Added pypy3.11 to build
+* Removed pypy3.8 from build, not suppurted
+* Bumped pyo3 to 0.23.3, drops pypy3.7 and pypy3.8
+* Bumped unicode-bidi to 0.3.18  closes #28
+
+
 0.6.3
 -----
 
