@@ -3,6 +3,12 @@ Changelog
 
 .. :changelog:
 
+0.6.5
+-----
+
+* Revert "Added pypy3.11 to build"
+
+
 0.6.4
 -----
 
