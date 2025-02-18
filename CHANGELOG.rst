@@ -3,6 +3,12 @@ Changelog
 
 .. :changelog:
 
+0.6.6
+-----
+
+* Upgraded to macos-13 runner (as 12 is not available anymore).
+
+
 0.6.5
 -----
 
