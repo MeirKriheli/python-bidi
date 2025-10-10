@@ -7,6 +7,7 @@ Changelog
 -----
 
 * Bumped pyo3 to 0.26.0
+* Changed Rust edition to 2024
 
 0.6.6
 -----
