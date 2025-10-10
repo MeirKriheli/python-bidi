@@ -3,6 +3,11 @@ Changelog
 
 .. :changelog:
 
+0.6.7
+-----
+
+* Bumped pyo3 to 0.26.0
+
 0.6.6
 -----
 
