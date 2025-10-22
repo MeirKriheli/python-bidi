@@ -3,6 +3,15 @@ Changelog
 
 .. :changelog:
 
+0.6.7
+-----
+
+* Added generate-import-lib for windows [Meir Kriheli]
+* Removed pypy3.9 and pypy3.10 from build, removed by pyo3 [Meir Kriheli]
+* Added 3.14 and pypy3.11 to targets [Meir Kriheli]
+* Bumped pyo3 to 0.27.1 [Meir Kriheli]
+
+
 0.6.6
 -----
 
