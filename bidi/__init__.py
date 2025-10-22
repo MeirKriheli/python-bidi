@@ -22,7 +22,7 @@ from .wrapper import get_base_level, get_display
 
 __all__ = ["get_base_level", "get_display"]
 
-VERSION_TUPLE = (0, 6, 0)
+VERSION_TUPLE = (0, 6, 7)
 VERSION = ".".join(str(x) for x in VERSION_TUPLE)
 
 
