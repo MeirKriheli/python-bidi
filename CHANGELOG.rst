@@ -3,6 +3,11 @@ Changelog
 
 .. :changelog:
 
+0.6.8
+-----
+
+* Added missing 3.14 build for Linux (Jonathan Duncan)
+
 0.6.7
 -----
 
