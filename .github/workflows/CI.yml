@@ -216,6 +216,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # Try 3.14t first, then 3.13t. Use outcome (not conclusion): continue-on-error leaves conclusion "success"
+      # even when setup fails, but outcome stays "failure" so we can chain fallbacks reliably.
       - uses: actions/setup-python@v5
         id: py314t
         continue-on-error: true
@@ -223,23 +225,32 @@ jobs:
           python-version: '3.14t'
       - uses: actions/setup-python@v5
         id: py313t
-        if: steps.py314t.outcome == 'failure'
+        if: steps.py314t.outcome != 'success'
         continue-on-error: true
         with:
           python-version: '3.13t'
-      - uses: dtolnay/rust-toolchain@stable
-        if: steps.py314t.outcome == 'success' || steps.py313t.outcome == 'success'
-      - name: Install dependencies and build
-        if: steps.py314t.outcome == 'success' || steps.py313t.outcome == 'success'
+      - name: Resolve free-threaded interpreter
+        id: ft_py
         run: |
-          python -m pip install --upgrade pip
-          pip install maturin pytest
-          maturin develop --release
+          ready=false
+          if [[ '${{ steps.py314t.outcome }}' == 'success' ]] || [[ '${{ steps.py313t.outcome }}' == 'success' ]]; then
+            ready=true
+          fi
+          echo "ready=${ready}" >> "$GITHUB_OUTPUT"
+      - uses: dtolnay/rust-toolchain@stable
+        if: steps.ft_py.outputs.ready == 'true'
+      - name: Install dependencies and build
+        if: steps.ft_py.outputs.ready == 'true'
+        run: |
+          python -m venv .venv
+          ./.venv/bin/python -m pip install --upgrade pip
+          ./.venv/bin/python -m pip install maturin pytest
+          ./.venv/bin/python -m maturin develop --release
       - name: Run tests
-        if: steps.py314t.outcome == 'success' || steps.py313t.outcome == 'success'
-        run: pytest tests/
+        if: steps.ft_py.outputs.ready == 'true'
+        run: ./.venv/bin/python -m pytest tests/
       - name: Free-threaded Python unavailable
-        if: ${{ !(steps.py314t.outcome == 'success' || steps.py313t.outcome == 'success') }}
+        if: steps.ft_py.outputs.ready != 'true'
         run: |
           echo '::notice::No free-threaded Python (3.14t / 3.13t) available from setup-python for this runner; skipping extension tests.'
 
