@@ -5,6 +5,7 @@ build-backend = "maturin"
 [project]
 name = "python-bidi"
 version = "0.6.8"
+requires-python = ">=3.9"
 readme = "README.rst"
 keywords = ["bidi", "unicode", "layout"]
 description = "Python Bidi layout wrapping the Rust crate unicode-bidi"
@@ -35,4 +36,4 @@ Changelog = "https://github.com/MeirKriheli/python-bidi/blob/master/CHANGELOG.rs
 pybidi = "bidi:main"
 
 [project.optional-dependencies]
-dev = ["pytest"]
+dev = ["nox", "pytest"]

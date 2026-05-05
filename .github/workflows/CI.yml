@@ -239,16 +239,20 @@ jobs:
           echo "ready=${ready}" >> "$GITHUB_OUTPUT"
       - uses: dtolnay/rust-toolchain@stable
         if: steps.ft_py.outputs.ready == 'true'
-      - name: Install dependencies and build
+      - uses: astral-sh/setup-uv@v5
         if: steps.ft_py.outputs.ready == 'true'
+      - name: Install dependencies (uv) and run tests
+        if: steps.ft_py.outputs.ready == 'true'
+        shell: bash
         run: |
-          python -m venv .venv
-          ./.venv/bin/python -m pip install --upgrade pip
-          ./.venv/bin/python -m pip install maturin pytest
-          ./.venv/bin/python -m maturin develop --release
-      - name: Run tests
-        if: steps.ft_py.outputs.ready == 'true'
-        run: ./.venv/bin/python -m pytest tests/
+          set -euo pipefail
+          if [[ '${{ steps.py314t.outcome }}' == 'success' ]]; then
+            export UV_PYTHON='${{ steps.py314t.outputs.python-path }}'
+          else
+            export UV_PYTHON='${{ steps.py313t.outputs.python-path }}'
+          fi
+          uv sync --extra dev --locked
+          uv run pytest tests/
       - name: Free-threaded Python unavailable
         if: steps.ft_py.outputs.ready != 'true'
         run: |

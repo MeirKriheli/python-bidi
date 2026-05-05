@@ -114,15 +114,25 @@ Examples::
 Installation
 -------------
 
-At the command line (assuming you're using some virtualenv)::
+From PyPI::
 
     pip install python-bidi
 
+Or with uv::
 
-Running tests
---------------
+    uv pip install python-bidi
 
-To run the tests::
 
-    pip install nox
+Development / running tests
+-----------------------------
+
+You need Rust (for ``maturin``), `uv <https://docs.astral.sh/uv/>`_, and a ``nox`` session backend of ``uv`` (nox reads this from ``noxfile.py``).
+
+From a clone, create the environment and run the test suite::
+
+    uv sync --extra dev
+    uv run pytest
+
+Or use nox (after ``uv sync --extra dev``, or install nox with ``uv tool install nox`` / ``pipx install nox``)::
+
     nox

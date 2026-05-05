@@ -57,38 +57,43 @@ Get Started!
 
 Ready to contribute? Here's how to set up `python-bidi` for local development.
 
-1. Fork the `python-bidi` repo on GitHub.
+1. Fork the ``python-bidi`` repo on GitHub.
 2. Clone your fork locally::
 
     $ git clone git@github.com:your_name_here/python-bidi.git
 
-3. Install your local copy into a virtualenv. Assuming you have virtualenvwrapper installed, this is how you set up your fork for local development::
+3. Install prerequisites:
 
-    $ mkvirtualenv python-bidi
+   * `Rust <https://www.rust-lang.org/tools/install>`_ (the extension is built with PyO3 / maturin).
+   * `uv <https://docs.astral.sh/uv/installation/>`_ (Python envs, dependency lockfile, and nox’s ``venv_backend="uv"``).
+
+4. In the repo, sync the dev environment and run tests::
+
     $ cd python-bidi/
-    $ python setup.py develop
+    $ uv sync --extra dev
+    $ uv run pytest
 
-4. Create a branch for local development::
+   This uses ``uv.lock`` when present for reproducible installs. To match CI-style checks via nox (also using uv under the hood)::
+
+    $ uv run nox
+
+   Alternatively, install nox globally (``uv tool install nox``, ``pipx install nox``, etc.) and run ``nox`` from the repo root.
+
+5. Create a branch for local development::
 
     $ git switch -c name-of-your-bugfix-or-feature
 
    Now you can make your changes locally.
 
-5. When you're done making changes, check that your changes pass flake8 and the tests::
+6. When you're ready, ensure tests still pass (see step 4).
 
-    $ flake8 python-bidi tests
-    $ python setup.py test
-    $ nox
-
-   To get ``flake8`` and ``nox``, just pip install them into your virtualenv.
-
-6. Commit your changes and push your branch to GitHub::
+7. Commit your changes and push your branch to GitHub::
 
     $ git add .
     $ git commit -m "Your detailed description of your changes."
     $ git push origin name-of-your-bugfix-or-feature
 
-7. Submit a pull request through the GitHub website.
+8. Submit a pull request through the GitHub website.
 
 Pull Request Guidelines
 -----------------------
