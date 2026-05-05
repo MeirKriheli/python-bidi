@@ -3,6 +3,16 @@ Changelog
 
 .. :changelog:
 
+0.6.9
+-----
+
+* Rust extension declares ``gil_used = false`` so it runs under free-threaded (no-GIL) Python [Meir Kriheli]
+* Added concurrent stress test for ``get_display`` under free-threaded builds [Meir Kriheli]
+* CI: optional cp313t/cp314t wheel builds when setup-python provides those interpreters; free-threaded test job prefers 3.14t with 3.13t fallback [Meir Kriheli]
+* CI: Intel macOS wheels now built on macOS 15 (replacing macOS 13) [Meir Kriheli]
+* Use ``uv`` for nox virtualenvs; add ``uv.lock`` and document uv-based dev setup in README and CONTRIBUTING [Meir Kriheli]
+* Set ``requires-python = ">=3.9"`` explicitly in ``pyproject.toml`` [Meir Kriheli]
+
 0.6.8
 -----
 
