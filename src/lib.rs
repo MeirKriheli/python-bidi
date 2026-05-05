@@ -38,7 +38,7 @@ pub fn get_base_level_inner(text: &str) -> PyResult<u8> {
     Ok(bidi_info.paragraphs[0].level.number())
 }
 
-#[pymodule]
+#[pymodule(gil_used = false)]
 fn bidi(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(get_display_inner, m)?)?;
     m.add_function(wrap_pyfunction!(get_base_level_inner, m)?)?;
