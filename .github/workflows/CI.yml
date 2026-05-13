@@ -129,9 +129,18 @@ jobs:
             target: x86
     steps:
       - uses: actions/checkout@v4
+      # Install each CPython used by maturin -i (Windows has no manylinux shim with all Pythons).
+      # Without 3.13/3.14 here, only the single 3.x from '3.x' plus 3.13t/3.14t were available, so
+      # cp313/cp314 wheels were missing while cp313t/cp314t were built.
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
+          python-version: |
+            3.9
+            3.10
+            3.11
+            3.12
+            3.13
+            3.14
           architecture: ${{ matrix.platform.target }}
       - uses: actions/setup-python@v5
         id: setup_freethreaded
