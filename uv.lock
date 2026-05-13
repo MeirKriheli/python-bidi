@@ -243,7 +243,7 @@ wheels = [
 
 [[package]]
 name = "python-bidi"
-version = "0.6.9"
+version = "0.6.10"
 source = { editable = "." }
 
 [package.optional-dependencies]

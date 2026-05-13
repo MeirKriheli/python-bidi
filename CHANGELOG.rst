@@ -3,6 +3,11 @@ Changelog
 
 .. :changelog:
 
+0.6.10
+------
+
+* CI: Windows wheel job builds standard cp313/cp314 wheels reliably by running maturin twice (standard Python first, then 3.13t/3.14t), working around ``win_amd64`` picking only free-threaded 3.13/3.14 when all interpreters share ``PATH`` [Meir Kriheli]
+
 0.6.9
 -----
 
