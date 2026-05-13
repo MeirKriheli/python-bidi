@@ -129,12 +129,13 @@ jobs:
             target: x86
     steps:
       - uses: actions/checkout@v4
-      # Install each CPython used by maturin -i (Windows has no manylinux shim with all Pythons).
-      # Without 3.13/3.14 here, only the single 3.x from '3.x' plus 3.13t/3.14t were available, so
-      # cp313/cp314 wheels were missing while cp313t/cp314t were built.
+      # Windows: install standard CPython only first, run maturin, then add 3.13t/3.14t and maturin again.
+      # If both GIL and free-threaded are on PATH before a single maturin run, detection picks 3.13t for 3.13
+      # and cp313/cp314 wheels are missing on win_amd64 (see https://github.com/PyO3/maturin-action/issues/313).
       - uses: actions/setup-python@v5
         with:
           python-version: |
+            3.8
             3.9
             3.10
             3.11
@@ -142,6 +143,15 @@ jobs:
             3.13
             3.14
           architecture: ${{ matrix.platform.target }}
+      - name: Configure maturin interpreters (standard CPython)
+        shell: bash
+        run: echo "MATURIN_INTERPRETERS_STD=3.8 3.9 3.10 3.11 3.12 3.13 3.14" >> "$GITHUB_ENV"
+      - name: Build wheels (standard CPython)
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.platform.target }}
+          args: --release --out dist -i ${{ env.MATURIN_INTERPRETERS_STD }}
+          sccache: 'true'
       - uses: actions/setup-python@v5
         id: setup_freethreaded
         continue-on-error: true
@@ -150,21 +160,16 @@ jobs:
             3.13t
             3.14t
           architecture: ${{ matrix.platform.target }}
-      - name: Configure maturin interpreters
-        shell: bash
+      - name: Warn if free-threaded Python unavailable
+        if: steps.setup_freethreaded.outcome != 'success'
         run: |
-          INTERP='3.8 3.9 3.10 3.11 3.12 3.13 3.14'
-          if [[ '${{ steps.setup_freethreaded.outcome }}' == 'success' ]]; then
-            INTERP="$INTERP 3.13t 3.14t"
-          else
-            echo '::warning::Free-threaded Python (3.13t/3.14t) unavailable from setup-python; skipping cp313t/cp314t wheels this run.'
-          fi
-          echo "MATURIN_INTERPRETERS=$INTERP" >> "$GITHUB_ENV"
-      - name: Build wheels
+          echo '::warning::Free-threaded Python (3.13t/3.14t) unavailable from setup-python; skipping cp313t/cp314t wheels this run.'
+      - name: Build wheels (free-threaded)
+        if: steps.setup_freethreaded.outcome == 'success'
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist -i ${{ env.MATURIN_INTERPRETERS }}
+          args: --release --out dist -i 3.13t 3.14t
           sccache: 'true'
       - name: Upload wheels
         uses: actions/upload-artifact@v4
