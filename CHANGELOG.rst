@@ -3,6 +3,11 @@ Changelog
 
 .. :changelog:
 
+0.6.11
+------
+
+* Bump pyo3 to 0.29.0, drop unsupported 3.13t [Damian Dimmich]
+
 0.6.10
 ------
 
