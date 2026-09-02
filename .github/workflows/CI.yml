@@ -121,38 +121,37 @@ jobs:
         platform:
           - runner: windows-latest
             target: x64
+            python_arch: x64
+            interpreters: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13', '3.14']
           - runner: windows-latest
             target: x86
+            python_arch: x86
+            interpreters: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13', '3.14']
+          # CPython has no Windows ARM64 builds before 3.11
+          - runner: windows-11-arm
+            target: aarch64
+            python_arch: arm64
+            interpreters: ['3.11', '3.12', '3.13', '3.14']
     steps:
       - uses: actions/checkout@v4
-      # Windows: install standard CPython only first, run maturin, then add 3.14t and maturin again.  
+      # Windows: install standard CPython only first, run maturin, then add 3.14t and maturin again.
       # 3.13t is not supported by recent PyO3
       - uses: actions/setup-python@v5
         with:
-          python-version: |
-            3.8
-            3.9
-            3.10
-            3.11
-            3.12
-            3.13
-            3.14
-          architecture: ${{ matrix.platform.target }}
-      - name: Configure maturin interpreters (standard CPython)
-        shell: bash
-        run: echo "MATURIN_INTERPRETERS_STD=3.8 3.9 3.10 3.11 3.12 3.13 3.14" >> "$GITHUB_ENV"
+          python-version: ${{ join(matrix.platform.interpreters, fromJSON('"\n"')) }}
+          architecture: ${{ matrix.platform.python_arch }}
       - name: Build wheels (standard CPython)
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist -i ${{ env.MATURIN_INTERPRETERS_STD }}
+          args: --release --out dist -i ${{ join(matrix.platform.interpreters, ' ') }}
           sccache: 'true'
       - uses: actions/setup-python@v5
         id: setup_freethreaded
         continue-on-error: true
         with:
           python-version: 3.14t
-          architecture: ${{ matrix.platform.target }}
+          architecture: ${{ matrix.platform.python_arch }}
       - name: Warn if free-threaded Python unavailable
         if: steps.setup_freethreaded.outcome != 'success'
         run: |
