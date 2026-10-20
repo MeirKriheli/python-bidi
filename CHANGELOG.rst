@@ -3,6 +3,13 @@ Changelog
 
 .. :changelog:
 
+0.6.12
+------
+
+* Added standard and free-threaded Python 3.15 wheel support.
+* Bumped PyO3 to 0.30.0.
+* Addressed security vulnerabilities in development dependencies; Python 3.9 support was dropped because the patched dependencies require Python 3.10+.
+
 0.6.11
 ------
 
