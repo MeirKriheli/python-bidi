@@ -41,18 +41,28 @@ jobs:
         with:
           python-version: '3.x'
       - uses: actions/setup-python@v5
-        id: setup_freethreaded
+        id: setup_freethreaded_314
         continue-on-error: true
         with:
           python-version: 3.14t
+      - uses: actions/setup-python@v5
+        id: setup_freethreaded_315
+        continue-on-error: true
+        with:
+          python-version: 3.15t
       - name: Configure maturin interpreters
         shell: bash
         run: |
-          INTERP='3.8 3.9 3.10 3.11 3.12 3.13 3.14'
-          if [[ '${{ steps.setup_freethreaded.outcome }}' == 'success' ]]; then
+          INTERP='3.8 3.9 3.10 3.11 3.12 3.13 3.14 3.15'
+          if [[ '${{ steps.setup_freethreaded_314.outcome }}' == 'success' ]]; then
             INTERP="$INTERP 3.14t"
           else
             echo '::warning::Free-threaded Python (3.14t) unavailable from setup-python; skipping cp314t wheels this run.'
+          fi
+          if [[ '${{ steps.setup_freethreaded_315.outcome }}' == 'success' ]]; then
+            INTERP="$INTERP 3.15t"
+          else
+            echo '::warning::Free-threaded Python (3.15t) unavailable from setup-python; skipping cp315t wheels this run.'
           fi
           echo "MATURIN_INTERPRETERS=$INTERP pypy3.11" >> "$GITHUB_ENV"
       - name: Build wheels
@@ -87,18 +97,28 @@ jobs:
         with:
           python-version: '3.x'
       - uses: actions/setup-python@v5
-        id: setup_freethreaded
+        id: setup_freethreaded_314
         continue-on-error: true
         with:
           python-version: 3.14t
+      - uses: actions/setup-python@v5
+        id: setup_freethreaded_315
+        continue-on-error: true
+        with:
+          python-version: 3.15t
       - name: Configure maturin interpreters
         shell: bash
         run: |
-          INTERP='3.8 3.9 3.10 3.11 3.12 3.13 3.14'
-          if [[ '${{ steps.setup_freethreaded.outcome }}' == 'success' ]]; then
+          INTERP='3.8 3.9 3.10 3.11 3.12 3.13 3.14 3.15'
+          if [[ '${{ steps.setup_freethreaded_314.outcome }}' == 'success' ]]; then
             INTERP="$INTERP 3.14t"
           else
             echo '::warning::Free-threaded Python (3.14t) unavailable from setup-python; skipping cp314t wheels this run.'
+          fi
+          if [[ '${{ steps.setup_freethreaded_315.outcome }}' == 'success' ]]; then
+            INTERP="$INTERP 3.15t"
+          else
+            echo '::warning::Free-threaded Python (3.15t) unavailable from setup-python; skipping cp315t wheels this run.'
           fi
           echo "MATURIN_INTERPRETERS=$INTERP pypy3.11" >> "$GITHUB_ENV"
       - name: Build wheels
@@ -125,8 +145,8 @@ jobs:
             target: x86
     steps:
       - uses: actions/checkout@v4
-      # Windows: install standard CPython only first, run maturin, then add 3.14t and maturin again.  
-      # 3.13t is not supported by recent PyO3
+      # Windows: install standard CPython first, then install free-threaded
+      # interpreters and run maturin for each available version.
       - uses: actions/setup-python@v5
         with:
           python-version: |
@@ -137,10 +157,11 @@ jobs:
             3.12
             3.13
             3.14
+            3.15
           architecture: ${{ matrix.platform.target }}
       - name: Configure maturin interpreters (standard CPython)
         shell: bash
-        run: echo "MATURIN_INTERPRETERS_STD=3.8 3.9 3.10 3.11 3.12 3.13 3.14" >> "$GITHUB_ENV"
+        run: echo "MATURIN_INTERPRETERS_STD=3.8 3.9 3.10 3.11 3.12 3.13 3.14 3.15" >> "$GITHUB_ENV"
       - name: Build wheels (standard CPython)
         uses: PyO3/maturin-action@v1
         with:
@@ -148,21 +169,39 @@ jobs:
           args: --release --out dist -i ${{ env.MATURIN_INTERPRETERS_STD }}
           sccache: 'true'
       - uses: actions/setup-python@v5
-        id: setup_freethreaded
+        id: setup_freethreaded_314
         continue-on-error: true
         with:
           python-version: 3.14t
           architecture: ${{ matrix.platform.target }}
+      - uses: actions/setup-python@v5
+        id: setup_freethreaded_315
+        continue-on-error: true
+        with:
+          python-version: 3.15t
+          architecture: ${{ matrix.platform.target }}
       - name: Warn if free-threaded Python unavailable
-        if: steps.setup_freethreaded.outcome != 'success'
+        if: steps.setup_freethreaded_314.outcome != 'success' || steps.setup_freethreaded_315.outcome != 'success'
         run: |
-          echo '::warning::Free-threaded Python (3.14t) unavailable from setup-python; skipping cp314t wheels this run.'
-      - name: Build wheels (free-threaded)
-        if: steps.setup_freethreaded.outcome == 'success'
+          if [[ '${{ steps.setup_freethreaded_314.outcome }}' != 'success' ]]; then
+            echo '::warning::Free-threaded Python (3.14t) unavailable from setup-python; skipping cp314t wheels this run.'
+          fi
+          if [[ '${{ steps.setup_freethreaded_315.outcome }}' != 'success' ]]; then
+            echo '::warning::Free-threaded Python (3.15t) unavailable from setup-python; skipping cp315t wheels this run.'
+          fi
+      - name: Build wheels (free-threaded Python 3.14)
+        if: steps.setup_freethreaded_314.outcome == 'success'
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist -i  3.14t
+          args: --release --out dist -i 3.14t
+          sccache: 'true'
+      - name: Build wheels (free-threaded Python 3.15)
+        if: steps.setup_freethreaded_315.outcome == 'success'
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.platform.target }}
+          args: --release --out dist -i 3.15t
           sccache: 'true'
       - name: Upload wheels
         uses: actions/upload-artifact@v4
@@ -190,19 +229,30 @@ jobs:
             3.12
             3.13
             3.14
+            3.15
       - uses: actions/setup-python@v5
-        id: setup_freethreaded
+        id: setup_freethreaded_314
         continue-on-error: true
         with:
           python-version: 3.14t
+      - uses: actions/setup-python@v5
+        id: setup_freethreaded_315
+        continue-on-error: true
+        with:
+          python-version: 3.15t
       - name: Configure maturin interpreters
         shell: bash
         run: |
-          INTERP='3.8 3.9 3.10 3.11 3.12 3.13 3.14'
-          if [[ '${{ steps.setup_freethreaded.outcome }}' == 'success' ]]; then
-            INTERP="$INTERP  3.14t"
+          INTERP='3.9 3.10 3.11 3.12 3.13 3.14 3.15'
+          if [[ '${{ steps.setup_freethreaded_314.outcome }}' == 'success' ]]; then
+            INTERP="$INTERP 3.14t"
           else
             echo '::warning::Free-threaded Python (3.14t) unavailable from setup-python; skipping cp314t wheels this run.'
+          fi
+          if [[ '${{ steps.setup_freethreaded_315.outcome }}' == 'success' ]]; then
+            INTERP="$INTERP 3.15t"
+          else
+            echo '::warning::Free-threaded Python (3.15t) unavailable from setup-python; skipping cp315t wheels this run.'
           fi
           echo "MATURIN_INTERPRETERS=$INTERP pypy3.11" >> "$GITHUB_ENV"
       - name: Build wheels
@@ -221,8 +271,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # Try 3.14t first. Use outcome (not conclusion) - 3.13t isn't supported: continue-on-error leaves conclusion "success"
-      # even when setup fails, but outcome stays "failure" so we can chain fallbacks reliably.
+      # Try Python 3.15t. Use outcome (not conclusion) so continue-on-error
+      # still lets us reliably detect an unavailable interpreter.
+      - uses: actions/setup-python@v5
+        id: py315t
+        continue-on-error: true
+        with:
+          python-version: '3.15t'
       - uses: actions/setup-python@v5
         id: py314t
         continue-on-error: true
@@ -232,10 +287,16 @@ jobs:
         id: ft_py
         run: |
           ready=false
-          if [[ '${{ steps.py314t.outcome }}' == 'success' ]]; then
+          python_path=''
+          if [[ '${{ steps.py315t.outcome }}' == 'success' ]]; then
             ready=true
+            python_path='${{ steps.py315t.outputs.python-path }}'
+          elif [[ '${{ steps.py314t.outcome }}' == 'success' ]]; then
+            ready=true
+            python_path='${{ steps.py314t.outputs.python-path }}'
           fi
           echo "ready=${ready}" >> "$GITHUB_OUTPUT"
+          echo "python_path=${python_path}" >> "$GITHUB_OUTPUT"
       - uses: dtolnay/rust-toolchain@stable
         if: steps.ft_py.outputs.ready == 'true'
       - uses: astral-sh/setup-uv@v5
@@ -245,13 +306,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          export UV_PYTHON='${{ steps.py314t.outputs.python-path }}'
+          export UV_PYTHON='${{ steps.ft_py.outputs.python_path }}'
           uv sync --extra dev --locked
           uv run pytest tests/
       - name: Free-threaded Python unavailable
         if: steps.ft_py.outputs.ready != 'true'
         run: |
-          echo '::notice::No free-threaded Python (3.14t) available from setup-python for this runner; skipping extension tests.'
+          echo '::notice::No free-threaded Python (3.15t or 3.14t) available from setup-python for this runner; skipping extension tests.'
 
   sdist:
     runs-on: ubuntu-latest
