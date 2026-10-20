@@ -53,7 +53,7 @@ jobs:
       - name: Configure maturin interpreters
         shell: bash
         run: |
-          INTERP='3.8 3.9 3.10 3.11 3.12 3.13 3.14 3.15'
+          INTERP='3.10 3.11 3.12 3.13 3.14 3.15'
           if [[ '${{ steps.setup_freethreaded_314.outcome }}' == 'success' ]]; then
             INTERP="$INTERP 3.14t"
           else
@@ -109,7 +109,7 @@ jobs:
       - name: Configure maturin interpreters
         shell: bash
         run: |
-          INTERP='3.8 3.9 3.10 3.11 3.12 3.13 3.14 3.15'
+          INTERP='3.10 3.11 3.12 3.13 3.14 3.15'
           if [[ '${{ steps.setup_freethreaded_314.outcome }}' == 'success' ]]; then
             INTERP="$INTERP 3.14t"
           else
@@ -150,8 +150,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: |
-            3.8
-            3.9
             3.10
             3.11
             3.12
@@ -161,7 +159,7 @@ jobs:
           architecture: ${{ matrix.platform.target }}
       - name: Configure maturin interpreters (standard CPython)
         shell: bash
-        run: echo "MATURIN_INTERPRETERS_STD=3.8 3.9 3.10 3.11 3.12 3.13 3.14 3.15" >> "$GITHUB_ENV"
+        run: echo "MATURIN_INTERPRETERS_STD=3.10 3.11 3.12 3.13 3.14 3.15" >> "$GITHUB_ENV"
       - name: Build wheels (standard CPython)
         uses: PyO3/maturin-action@v1
         with:
@@ -223,7 +221,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: |
-            3.9
             3.10
             3.11
             3.12
@@ -243,7 +240,7 @@ jobs:
       - name: Configure maturin interpreters
         shell: bash
         run: |
-          INTERP='3.9 3.10 3.11 3.12 3.13 3.14 3.15'
+          INTERP='3.10 3.11 3.12 3.13 3.14 3.15'
           if [[ '${{ steps.setup_freethreaded_314.outcome }}' == 'success' ]]; then
             INTERP="$INTERP 3.14t"
           else

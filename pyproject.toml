@@ -5,7 +5,7 @@ build-backend = "maturin"
 [project]
 name = "python-bidi"
 version = "0.6.11"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 readme = "README.rst"
 keywords = ["bidi", "unicode", "layout"]
 description = "Python Bidi layout wrapping the Rust crate unicode-bidi"
@@ -17,7 +17,6 @@ classifiers = [
     "License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)",
     "Topic :: Text Processing",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -36,4 +35,8 @@ Changelog = "https://github.com/MeirKriheli/python-bidi/blob/master/CHANGELOG.rs
 pybidi = "bidi:main"
 
 [project.optional-dependencies]
-dev = ["nox", "pytest"]
+dev = [
+    "filelock>=3.20.1",
+    "nox",
+    "pytest>=9.0.3",
+]
